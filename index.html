@@ -1,1089 +1,1706 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hwy3.com | North American Highway 3 Travel &amp; Route Directory</title>
-  
-  <!-- Google Analytics 4 (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hwy3.com | Crowsnest Highway & North America's Highway 3 Travel Guide</title>
+  <meta name="description" content="100% Free travel, milepost, scenic overlook, and road-trip planning guide for Canada's Crowsnest Highway (BC & Alberta Hwy 3), Ontario Hwy 3, US Route 3, CA-3, and TX-3." />
+
+  <!-- =====================================================================
+       GOOGLE ANALYTICS 4 (GA4) TRACKING SNIPPET
+       Replace 'G-XXXXXXXXXX' below with your actual GA4 Measurement ID.
+  ====================================================================== -->
   <script>
+    window.HWY3_DEFAULT_GA_ID = 'G-XXXXXXXXXX';
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
+    function gtag() { dataLayer.push(arguments); }
+
+    (function initGoogleAnalytics() {
+      try {
+        const activeId = window.HWY3_DEFAULT_GA_ID;
+        window.HWY3_ACTIVE_GA_ID = activeId;
+
+        if (activeId && activeId !== 'G-XXXXXXXXXX') {
+          const gaScript = document.createElement('script');
+          gaScript.async = true;
+          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(activeId);
+          document.head.appendChild(gaScript);
+
+          gtag('js', new Date());
+          gtag('config', activeId, { anonymize_ip: true });
+        } else {
+          // Initialize local dataLayer queue so custom events still log cleanly
+          gtag('js', new Date());
+        }
+      } catch (e) {
+        console.warn('Analytics initialization skipped:', e);
+      }
+    })();
   </script>
 
-  <!-- Leaflet CSS for Interactive Map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Google Fonts: Inter & JetBrains Mono for highway milepost badges -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 
-  <!-- Google Fonts & Professional Styling -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-slate-950: #020617;
-      --bg-slate-900: #0f172a;
-      --bg-slate-800: #1e293b;
-      --border-slate-700: #334155;
-      --text-slate-100: #f8fafc;
-      --text-slate-400: #94a3b8;
-      --accent-sky: #0284c7;
-      --accent-sky-hover: #0369a1;
-      --accent-amber: #f59e0b;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-slate-950);
-      color: var(--text-slate-100);
-      line-height: 1.6;
-    }
-
-    header {
-      background: var(--bg-slate-900);
-      border-bottom: 1px solid var(--border-slate-700);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .nav-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .logo-badge {
-      background: var(--accent-sky);
-      color: #fff;
-      font-weight: 800;
-      font-size: 1.25rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 8px;
-      letter-spacing: -0.5px;
-    }
-
-    .logo-text h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .logo-text p {
-      font-size: 0.8rem;
-      color: var(--text-slate-400);
-    }
-
-    .nav-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      background: var(--bg-slate-800);
-      color: var(--text-slate-100);
-      border: 1px solid var(--border-slate-700);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .btn:hover {
-      background: var(--border-slate-700);
-    }
-
-    .btn-primary {
-      background: var(--accent-sky);
-      border-color: var(--accent-sky);
-    }
-
-    .btn-primary:hover {
-      background: var(--accent-sky-hover);
-    }
-
-    /* Route Selector Tabs */
-    .route-tabs-bar {
-      background: var(--bg-slate-900);
-      border-bottom: 1px solid var(--border-slate-700);
-      padding: 0.75rem 1.5rem;
-    }
-
-    .route-tabs-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      gap: 0.5rem;
-      overflow-x: auto;
-      padding-bottom: 0.25rem;
-    }
-
-    .route-tab {
-      background: var(--bg-slate-800);
-      border: 1px solid var(--border-slate-700);
-      color: var(--text-slate-400);
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .route-tab:hover {
-      color: var(--text-slate-100);
-      border-color: var(--accent-sky);
-    }
-
-    .route-tab.active {
-      background: var(--accent-sky);
-      color: #fff;
-      border-color: var(--accent-sky);
-    }
-
-    /* Main Container Grid */
-    .main-layout {
-      max-width: 1400px;
-      margin: 1.5rem auto;
-      padding: 0 1.5rem;
-      display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 1024px) {
-      .main-layout {
-        grid-template-columns: 1fr;
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            hwy: {
+              green: '#006A4E',      /* Classic MUTCD Highway Guide Sign Green */
+              greenDark: '#004D38',
+              greenLight: '#E6F3EF',
+              amber: '#D97706',      /* Highway Warning/Milepost Accent */
+              slate: '#0F172A',
+            }
+          }
+        }
       }
+    };
+  </script>
+
+  <!-- Leaflet.js CSS & JS (100% Free OpenStreetMap tiles, Zero API Keys) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    /* Custom Highway Signage & Map Styling */
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
     }
 
-    /* Left Sidebar: Waypoints */
-    .sidebar-panel {
-      background: var(--bg-slate-900);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      height: 750px;
-      overflow: hidden;
+    .highway-sign-border {
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 0 0 2px #006A4E, 0 10px 25px -5px rgba(0, 106, 78, 0.25);
     }
 
-    .panel-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border-slate-700);
-      background: var(--bg-slate-800);
+    .leaflet-container {
+      font-family: 'Inter', system-ui, sans-serif;
+      z-index: 10;
     }
 
-    .panel-header h2 {
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .panel-header p {
-      font-size: 0.8rem;
-      color: var(--text-slate-400);
-      margin-top: 0.15rem;
-    }
-
-    .search-filter-bar {
-      padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid var(--border-slate-700);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .search-input {
-      background: var(--bg-slate-950);
-      border: 1px solid var(--border-slate-700);
-      color: var(--text-slate-100);
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      width: 100%;
-    }
-
-    .filter-chips {
-      display: flex;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .chip {
-      background: var(--bg-slate-950);
-      border: 1px solid var(--border-slate-700);
-      color: var(--text-slate-400);
-      padding: 0.2rem 0.6rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .chip.active {
-      background: var(--accent-sky);
-      color: #fff;
-      border-color: var(--accent-sky);
-    }
-
-    .waypoints-list {
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      flex-grow: 1;
-    }
-
-    .waypoint-card {
-      background: var(--bg-slate-950);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 8px;
-      padding: 0.85rem 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .waypoint-card:hover, .waypoint-card.active {
-      border-color: var(--accent-sky);
-      transform: translateY(-1px);
-    }
-
-    .waypoint-card h3 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .waypoint-card h3 span {
-      background: var(--bg-slate-800);
-      color: var(--text-slate-400);
-      font-size: 0.7rem;
-      padding: 0.1rem 0.4rem;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-
-    .waypoint-card p {
-      font-size: 0.8rem;
-      color: var(--text-slate-400);
-      margin-top: 0.3rem;
-    }
-
-    .waypoint-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 0.5rem;
-      font-size: 0.75rem;
-      color: var(--accent-sky);
-      font-weight: 600;
-    }
-
-    /* Right Main Content: Map & Info */
-    .content-area {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .map-container {
-      background: var(--bg-slate-900);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 12px;
-      height: 480px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-      background: var(--bg-slate-950);
-    }
-
-    /* Route Info & Stats Bar */
-    .route-info-card {
-      background: var(--bg-slate-900);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .route-info-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .route-title-group h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .route-title-group p {
-      font-size: 0.85rem;
-      color: var(--text-slate-400);
-      margin-top: 0.2rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.75rem;
-    }
-
-    .stat-box {
-      background: var(--bg-slate-950);
-      border: 1px solid var(--border-slate-700);
-      padding: 0.75rem;
-      border-radius: 8px;
-    }
-
-    .stat-box .label {
-      font-size: 0.725rem;
-      color: var(--text-slate-400);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-box .value {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-slate-100);
-      margin-top: 0.15rem;
-    }
-
-    .resources-bar {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--border-slate-700);
-      padding-top: 1rem;
-    }
-
-    /* Estimator Tool */
-    .estimator-section {
-      background: var(--bg-slate-900);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-    }
-
-    .estimator-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 0.75rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--text-slate-400);
-      margin-bottom: 0.3rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-control {
-      width: 100%;
-      background: var(--bg-slate-950);
-      border: 1px solid var(--border-slate-700);
-      color: var(--text-slate-100);
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-    }
-
-    /* Modal Backdrop */
-    .modal-backdrop {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(2, 6, 23, 0.8);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
+    /* Custom numbered highway waypoint markers */
+    .hwy-pin {
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
+      width: 30px;
+      height: 30px;
+      background-color: #006A4E;
+      color: #FFFFFF;
+      border: 2.5px solid #FFFFFF;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s ease, background-color 0.15s ease;
     }
 
-    .modal-backdrop.open {
-      opacity: 1;
-      pointer-events: auto;
+    .hwy-pin:hover,
+    .hwy-pin.active-pin {
+      background-color: #D97706;
+      transform: scale(1.2);
+      z-index: 999 !important;
     }
 
-    .modal-card {
-      background: var(--bg-slate-900);
-      border: 1px solid var(--border-slate-700);
-      border-radius: 12px;
-      width: 100%;
-      max-width: 520px;
-      padding: 1.75rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    /* Hide scrollbars on horizontal pill navs while keeping touch scroll */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
     }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.25rem;
-    }
-
-    .modal-header h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-slate-400);
-      font-size: 1.25rem;
-      cursor: pointer;
-    }
-
-    .close-btn:hover {
-      color: var(--text-slate-100);
-    }
-
-    /* Footer */
-    footer {
-      background: var(--bg-slate-900);
-      border-top: 1px solid var(--border-slate-700);
-      margin-top: 3rem;
-      padding: 2rem 1.5rem;
-    }
-
-    .footer-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .footer-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      font-size: 0.85rem;
-    }
-
-    .footer-links a {
-      color: var(--text-slate-400);
-      text-decoration: none;
-    }
-
-    .footer-links a:hover {
-      color: var(--text-slate-100);
-    }
-
-    .footer-bottom {
-      border-top: 1px solid var(--border-slate-700);
-      padding-top: 1.25rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      font-size: 0.8rem;
-      color: var(--text-slate-400);
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
 </head>
-<body>
+<body class="antialiased selection:bg-hwy-green selection:text-white flex flex-col min-h-screen">
 
-  <!-- Header -->
-  <header>
-    <div class="nav-container">
-      <div class="logo-area">
-        <div class="logo-badge">Hwy 3</div>
-        <div class="logo-text">
-          <h1>Hwy3.com Directory</h1>
-          <p>North American Highway 3 Travel Portal</p>
-        </div>
+  <!-- TOP FREE INFORMATION & TRANSPARENCY BANNER -->
+  <div class="bg-slate-900 text-slate-100 text-xs sm:text-sm py-2 px-4 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+      <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+        <span class="inline-flex items-center gap-1.5 bg-hwy-green text-white font-semibold px-2.5 py-0.5 rounded-full text-xs tracking-wide uppercase">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          100% Free Travel &amp; Route Information Guide
+        </span>
+        <span class="text-slate-300">No paywalls, no subscriptions, no required sign-ups — open road-trip data for drivers &amp; travelers.</span>
       </div>
-      <div class="nav-controls">
-        <button class="btn" onclick="toggleUnitSystem()">
-          Unit: <span id="unitDisplay">Kilometers (KM)</span>
-        </button>
-        <button class="btn btn-primary" onclick="openAdModal()">
-          Advertise / Partnerships
-        </button>
+      <div class="flex items-center gap-3 text-xs text-slate-400 shrink-0">
+        <a href="#road-conditions" class="hover:text-white underline decoration-slate-600 underline-offset-2 transition">Live 511 / DriveBC Links</a>
+        <span>•</span>
+        <a href="#trip-estimator" class="hover:text-white underline decoration-slate-600 underline-offset-2 transition">Fuel &amp; Distance Tool</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER & HIGHWAY SHIELD BRANDING -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <!-- Brand Logo: Authentic Highway 3 Shield -->
+      <a href="#" class="flex items-center gap-3.5 group focus:outline-none">
+        <div class="w-12 h-14 bg-hwy-green rounded-xl highway-sign-border flex flex-col items-center justify-center text-white select-none transition-transform group-hover:scale-105">
+          <span class="text-[9px] font-extrabold tracking-widest uppercase leading-none opacity-90">HWY</span>
+          <span class="text-2xl font-black leading-none mt-0.5">3</span>
+          <span class="w-7 h-0.5 bg-white/60 rounded-full mt-1"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">Hwy3<span class="text-hwy-green">.com</span></span>
+            <span class="hidden md:inline-block text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-hwy-green border border-emerald-200 px-2 py-0.5 rounded-md">
+              Crowsnest &amp; North America Portal
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Independent Mile-by-Mile Highway 3 Directory &amp; Scenic Route Planner</p>
+        </div>
+      </a>
+
+      <!-- Unit Toggle (Metric KM vs Imperial Miles) + Quick Jump -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center text-xs font-semibold" role="group" aria-label="Distance Unit Toggle">
+          <button id="unit-km-btn" type="button" onclick="setUnit('km')" class="px-3 py-1.5 rounded-lg bg-hwy-green text-white shadow-sm transition">
+            KM (Canada)
+          </button>
+          <button id="unit-mi-btn" type="button" onclick="setUnit('mi')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+            Miles (US)
+          </button>
+        </div>
+
+        <a href="#interactive-map-section" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+          Explore Map
+        </a>
+      </div>
+    </div>
+
+    <!-- TOP-LEVEL ROUTE SWITCHER TABS (OPTION A ARCHITECTURE) -->
+    <div class="bg-slate-50 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex items-center gap-2 py-2.5 overflow-x-auto no-scrollbar" aria-label="Highway 3 Routes">
+          <button type="button" data-route="crowsnest" onclick="selectRoute('crowsnest')" class="route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition border bg-hwy-green text-white border-hwy-green shadow-sm">
+            <span class="bg-white/20 text-white text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded font-extrabold">Flagship</span>
+            <span>🇨🇦 BC &amp; Alberta Hwy 3 (Crowsnest)</span>
+          </button>
+
+          <button type="button" data-route="ontario" onclick="selectRoute('ontario')" class="route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition border bg-white text-slate-700 border-slate-200 hover:border-hwy-green hover:text-hwy-green">
+            <span>🇨🇦 Ontario Hwy 3 (Talbot Trail)</span>
+          </button>
+
+          <button type="button" data-route="us3" onclick="selectRoute('us3')" class="route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition border bg-white text-slate-700 border-slate-200 hover:border-hwy-green hover:text-hwy-green">
+            <span>🇺🇸 U.S. Route 3 (New England)</span>
+          </button>
+
+          <button type="button" data-route="ca3" onclick="selectRoute('ca3')" class="route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition border bg-white text-slate-700 border-slate-200 hover:border-hwy-green hover:text-hwy-green">
+            <span>🇺🇸 California SR 3 (Trinity Alps)</span>
+          </button>
+
+          <button type="button" data-route="tx3" onclick="selectRoute('tx3')" class="route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition border bg-white text-slate-700 border-slate-200 hover:border-hwy-green hover:text-hwy-green">
+            <span>🇺🇸 Texas SH 3 (Houston–Galveston)</span>
+          </button>
+        </nav>
       </div>
     </div>
   </header>
 
-  <!-- Route Selector Bar -->
-  <div class="route-tabs-bar">
-    <div class="route-tabs-container" id="routeTabs">
-      <!-- Tabs populated via JS -->
+  <!-- DYNAMIC ROUTE HERO BANNER -->
+  <section class="bg-gradient-to-br from-hwy-greenDark via-hwy-green to-emerald-800 text-white border-b-4 border-amber-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-11">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Route Narrative -->
+        <div class="lg:col-span-8 space-y-4">
+          <div class="inline-flex flex-wrap items-center gap-2">
+            <span id="hero-badge" class="bg-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider px-3 py-1 rounded-lg shadow-sm">
+              Flagship Scenic Corridor • BC &amp; Alberta
+            </span>
+            <span id="hero-endpoints" class="bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1 rounded-lg border border-white/20">
+              Hope, BC ⇄ Medicine Hat, AB
+            </span>
+          </div>
+
+          <h1 id="hero-title" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+            Canada's Crowsnest Highway (Hwy 3)
+          </h1>
+
+          <p id="hero-description" class="text-emerald-50 text-base sm:text-lg max-w-3xl leading-relaxed">
+            Stretching 1,166 km (725 miles) across southern British Columbia and Alberta, Highway 3 winds through coastal rainforests, desert orchards, mountain passes, historic mining towns, and wide-open prairie skies.
+          </p>
+
+          <!-- Quick Action Pills -->
+          <div class="pt-2 flex flex-wrap items-center gap-3">
+            <a href="#directory-section" class="bg-white text-hwy-greenDark hover:bg-emerald-50 font-bold text-sm px-5 py-3 rounded-xl shadow-md transition inline-flex items-center gap-2">
+              <span>Browse Mile-by-Mile Stops</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+            <a href="#road-conditions" class="bg-hwy-greenDark/70 hover:bg-hwy-greenDark text-white border border-white/30 font-semibold text-sm px-4 py-3 rounded-xl transition inline-flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <span>Official Road &amp; Pass Conditions</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Route Telemetry Signboard Card -->
+        <div class="lg:col-span-4">
+          <div class="bg-slate-900/90 backdrop-blur-md border-2 border-white/80 rounded-2xl p-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+              <span class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">Route Telemetry</span>
+              <span id="hero-shield-code" class="bg-hwy-green text-white font-mono font-bold text-xs px-2.5 py-1 rounded border border-white/60">HWY 3</span>
+            </div>
+            <dl class="grid grid-cols-2 gap-4 text-sm">
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/70">
+                <dt class="text-slate-400 text-xs font-medium">Total Distance</dt>
+                <dd id="stat-distance" class="text-white font-mono font-bold text-lg mt-0.5">1,166 km</dd>
+              </div>
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/70">
+                <dt class="text-slate-400 text-xs font-medium">Est. Drive Time</dt>
+                <dd id="stat-drive-time" class="text-white font-mono font-bold text-lg mt-0.5">13h 30m</dd>
+              </div>
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/70">
+                <dt class="text-slate-400 text-xs font-medium">Highest Summit</dt>
+                <dd id="stat-summit" class="text-amber-300 font-mono font-bold text-sm mt-1">1,775 m (Kootenay)</dd>
+              </div>
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/70">
+                <dt class="text-slate-400 text-xs font-medium">Featured Waypoints</dt>
+                <dd id="stat-stops-count" class="text-emerald-300 font-mono font-bold text-lg mt-0.5">16 Stops</dd>
+              </div>
+            </dl>
+            <p id="stat-season-note" class="text-xs text-slate-300 mt-4 leading-relaxed border-t border-slate-800 pt-3">
+              <strong class="text-white">Seasonal Advisory:</strong> Winter tires/chains required Oct 1 – Apr 30 on BC mountain passes (Allison, Sunday Summit, Kootenay).
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Main Layout -->
-  <main class="main-layout">
-    
-    <!-- Sidebar Waypoints Panel -->
-    <aside class="sidebar-panel">
-      <div class="panel-header">
-        <h2 id="sidebarTitle">Route Waypoints</h2>
-        <p id="sidebarSubtitle">Select a stop to view details on the map</p>
-      </div>
-      <div class="search-filter-bar">
-        <input type="text" id="waypointSearch" class="search-input" placeholder="Search towns, parks, services..." oninput="filterWaypoints()">
-        <div class="filter-chips">
-          <button class="chip active" onclick="setCategoryFilter('all', this)">All</button>
-          <button class="chip" onclick="setCategoryFilter('Lodging', this)">Lodging</button>
-          <button class="chip" onclick="setCategoryFilter('Dining', this)">Dining</button>
-          <button class="chip" onclick="setCategoryFilter('Scenic', this)">Scenic</button>
-          <button class="chip" onclick="setCategoryFilter('Fuel / EV', this)">Fuel/EV</button>
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-grow w-full">
+
+    <!-- SECTION 1: INTERACTIVE ROUTE MAP (LEAFLET + OPENSTREETMAP) -->
+    <section id="interactive-map-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-4 sm:p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-hwy-green animate-pulse"></span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Interactive Route &amp; Waypoint Map</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Click any numbered highway marker or waypoint card to inspect elevation, highlights, and milepost coordinates. Powered by free OpenStreetMap data.
+          </p>
         </div>
-      </div>
-      <div class="waypoints-list" id="waypointsList">
-        <!-- Waypoint cards populated via JS -->
-      </div>
-    </aside>
-
-    <!-- Content Area: Map & Stats -->
-    <section class="content-area">
-      
-      <!-- Interactive Map -->
-      <div class="map-container">
-        <div id="map"></div>
-      </div>
-
-      <!-- Route Info & Stats Card -->
-      <div class="route-info-card">
-        <div class="route-info-header">
-          <div class="route-title-group">
-            <h2 id="infoRouteName">Canada's Crowsnest Highway</h2>
-            <p id="infoRouteDesc">Connecting Hope, BC to Medicine Hat, Alberta through the Cascade Mountains and Kootenay Rockies.</p>
-          </div>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <span style="background: rgba(2, 132, 199, 0.15); color: var(--accent-sky); padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700;" id="infoBadge">Flagship Route</span>
-          </div>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="label">Total Distance</div>
-            <div class="value" id="statDistance">1,166 km</div>
-          </div>
-          <div class="stat-box">
-            <div class="label">Est. Drive Time</div>
-            <div class="value" id="statTime">13h 45m</div>
-          </div>
-          <div class="stat-box">
-            <div class="label">Elevation Peak</div>
-            <div class="value" id="statElevation">1,775 m</div>
-          </div>
-          <div class="stat-box">
-            <div class="label">Official Road Info</div>
-            <div class="value" id="statRoadPortal"><a href="https://drivebc.ca" target="_blank" style="color: var(--accent-sky); text-decoration: underline; font-size: 0.9rem;">DriveBC / 511</a></div>
-          </div>
-        </div>
-
-        <div class="resources-bar" id="resourcesBar">
-          <!-- External official links populated via JS -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="resetMapBounds()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition">
+            <svg class="w-4 h-4 text-hwy-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            Fit Full Route
+          </button>
         </div>
       </div>
 
-      <!-- Trip Estimator Tool -->
-      <div class="estimator-section">
-        <h3 style="font-size: 1rem; font-weight: 700;">Segment Fuel &amp; Distance Estimator</h3>
-        <p style="font-size: 0.8rem; color: var(--text-slate-400); margin-top: 0.15rem;">Quickly estimate fuel consumption and driving time across this route.</p>
-        
-        <div class="estimator-grid">
-          <div class="form-group">
-            <label>Trip Distance (<span id="unitLabelShort">km</span>)</label>
-            <input type="number" id="estDistance" class="form-control" value="350" oninput="calculateTrip()">
+      <div class="grid grid-cols-1 lg:grid-cols-12">
+        <!-- Map Canvas -->
+        <div class="lg:col-span-8 relative">
+          <div id="route-map" class="w-full h-[380px] sm:h-[460px] bg-slate-100"></div>
+        </div>
+
+        <!-- Selected Waypoint Spotlight Panel -->
+        <div class="lg:col-span-4 bg-slate-50 border-t lg:border-t-0 lg:border-l border-slate-200 p-5 sm:p-6 flex flex-col justify-between">
+          <div id="map-spotlight-content" class="space-y-4">
+            <!-- Dynamically populated by JS -->
           </div>
-          <div class="form-group">
-            <label>Average Fuel Economy (<span id="unitEconomyLabel">L / 100km</span>)</label>
-            <input type="number" id="estEconomy" class="form-control" value="9.5" oninput="calculateTrip()">
+
+          <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+            <span>Tiles: © OpenStreetMap contributors</span>
+            <span class="font-mono font-semibold text-hwy-green">Zero API Key</span>
           </div>
-          <div class="form-group">
-            <label>Estimated Fuel Needed</label>
-            <div style="background: var(--bg-slate-950); border: 1px solid var(--border-slate-700); padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 700; color: var(--accent-sky);" id="resFuel">33.25 Liters</div>
-          </div>
-          <div class="form-group">
-            <label>Est. Driving Time (@ 90 km/h)</label>
-            <div style="background: var(--bg-slate-950); border: 1px solid var(--border-slate-700); padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 700; color: var(--text-slate-100);" id="resTime">3h 53m</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: MILE-BY-MILE DIRECTORY, SEARCH & CATEGORY FILTERS -->
+    <section id="directory-section" class="space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-hwy-green">100% Free Road-Trip Directory</span>
+          <h2 id="directory-heading" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+            Crowsnest Highway Stages &amp; Waypoints
+          </h2>
+          <p id="directory-subheading" class="text-sm text-slate-600 mt-1">
+            West-to-East guide from Hope, British Columbia through the Kootenay Rockies to Medicine Hat, Alberta.
+          </p>
+        </div>
+
+        <!-- Search Box -->
+        <div class="relative w-full md:w-80">
+          <input
+            id="stop-search-input"
+            type="text"
+            oninput="handleSearch(this.value)"
+            placeholder="Search towns, parks, wineries..."
+            aria-label="Search stops along Highway 3"
+            class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-hwy-green focus:border-hwy-green shadow-sm"
+          />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Stage Filter Pills (for multi-stage routes like Crowsnest) + Category Pills -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <!-- Stage Row (dynamically shown when route has stages) -->
+        <div id="stage-filter-wrapper" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0 mr-1">Stage:</span>
+          <div id="stage-pills" class="flex items-center gap-1.5"></div>
+        </div>
+
+        <!-- Category Row -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0 mr-1">Category:</span>
+          <div id="category-pills" class="flex items-center gap-1.5">
+            <button type="button" data-cat="all" onclick="setCategory('all')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-hwy-green text-white transition">All Stops</button>
+            <button type="button" data-cat="Scenic Overlooks" onclick="setCategory('Scenic Overlooks')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🏔️ Scenic Overlooks</button>
+            <button type="button" data-cat="Parks & Lakes" onclick="setCategory('Parks & Lakes')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🌲 Parks &amp; Lakes</button>
+            <button type="button" data-cat="Food & Wineries" onclick="setCategory('Food & Wineries')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🍷 Food &amp; Wineries</button>
+            <button type="button" data-cat="Historic & Cultural" onclick="setCategory('Historic & Cultural')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🏛️ Historic &amp; Cultural</button>
+            <button type="button" data-cat="Highway Towns" onclick="setCategory('Highway Towns')" class="cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">🛣️ Highway Towns</button>
           </div>
         </div>
       </div>
 
+      <!-- Cards Grid -->
+      <div id="stops-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Populated dynamically by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-stops-state" class="hidden bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
+        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">No matching stops found</h3>
+        <p class="text-sm text-slate-500 max-w-md mx-auto">Try clearing your search term or switching back to "All Stops" to view every waypoint on this Highway 3 corridor.</p>
+        <button type="button" onclick="resetFilters()" class="px-4 py-2 bg-hwy-green text-white text-xs font-bold rounded-xl hover:bg-hwy-greenDark transition">
+          Reset Filters
+        </button>
+      </div>
+    </section>
+
+    <!-- SECTION 3: INTERACTIVE TRIP DISTANCE & FUEL / EV STOP ESTIMATOR -->
+    <section id="trip-estimator" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-900 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">Interactive Road-Trip Calculator</span>
+          <h2 class="text-xl sm:text-2xl font-extrabold mt-0.5">Segment Distance, Drive Time &amp; Fuel / EV Stop Estimator</h2>
+        </div>
+        <span class="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-medium self-start sm:self-auto">
+          Mountain &amp; Rural Stretch Planner
+        </span>
+      </div>
+
+      <div class="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <!-- Controls -->
+        <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="calc-origin" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Starting Waypoint</label>
+            <select id="calc-origin" onchange="updateTripEstimate()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-hwy-green"></select>
+          </div>
+
+          <div>
+            <label for="calc-dest" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Destination Waypoint</label>
+            <select id="calc-dest" onchange="updateTripEstimate()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-hwy-green"></select>
+          </div>
+
+          <div>
+            <label for="calc-vehicle" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Vehicle Type &amp; Range</label>
+            <select id="calc-vehicle" onchange="updateTripEstimate()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-hwy-green">
+              <option value="gas_sedan">Gas Sedan / Crossover (~600 km / 375 mi range)</option>
+              <option value="suv_truck">Truck / RV / Towing (~480 km / 300 mi range)</option>
+              <option value="ev_standard">Electric Vehicle - Standard (~380 km / 235 mi range)</option>
+              <option value="ev_long">Electric Vehicle - Long Range (~480 km / 300 mi range)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="calc-pace" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Travel Pace</label>
+            <select id="calc-pace" onchange="updateTripEstimate()" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-hwy-green">
+              <option value="82">Steady Highway (~82 km/h / 51 mph avg)</option>
+              <option value="68">Scenic Overlooks &amp; Photo Stops (~68 km/h / 42 mph)</option>
+              <option value="60">Winter Pass / RV Pace (~60 km/h / 37 mph)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Output Summary Box -->
+        <div class="lg:col-span-5 bg-emerald-50/80 border border-emerald-200 rounded-2xl p-5 space-y-4">
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+              <span class="block text-[11px] font-bold uppercase text-slate-400">Distance</span>
+              <span id="est-distance" class="block text-lg sm:text-xl font-extrabold font-mono text-hwy-green mt-0.5">0 km</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+              <span class="block text-[11px] font-bold uppercase text-slate-400">Drive Time</span>
+              <span id="est-time" class="block text-lg sm:text-xl font-extrabold font-mono text-slate-900 mt-0.5">0h 0m</span>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+              <span class="block text-[11px] font-bold uppercase text-slate-400">Fuel / Charge</span>
+              <span id="est-stops" class="block text-lg sm:text-xl font-extrabold font-mono text-amber-600 mt-0.5">0 Stops</span>
+            </div>
+          </div>
+
+          <p id="est-advice" class="text-xs sm:text-sm text-slate-700 leading-relaxed bg-white/80 p-3 rounded-xl border border-emerald-100">
+            Select two waypoints to calculate segment distance, mountain-adjusted travel time, and recommended fuel or DC fast-charging intervals.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: OFFICIAL ROAD CONDITIONS & WEATHER QUICK-LINKS -->
+    <section id="road-conditions" class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600">Official Public Safety Feeds</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 mt-0.5">Live Road Conditions, Webcams &amp; Mountain Pass Reports</h2>
+        </div>
+        <p class="text-xs text-slate-500">Direct links to official government 511 &amp; DOT portals (100% free).</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- DriveBC -->
+        <a href="https://www.drivebc.ca/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-hwy-green px-2 py-0.5 rounded">British Columbia</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">DriveBC — Hwy 3 Cameras &amp; Passes</h3>
+            <p class="text-xs text-slate-600 mt-1">Real-time highway cams for Allison Pass, Sunday Summit, Anarchist Mtn &amp; Kootenay Pass.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- 511 Alberta -->
+        <a href="https://511.alberta.ca/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-hwy-green px-2 py-0.5 rounded">Alberta</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">511 Alberta — Crowsnest &amp; Prairies</h3>
+            <p class="text-xs text-slate-600 mt-1">Wind alerts, snowplow tracking, and road status from Crowsnest Pass to Medicine Hat.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- Ontario 511 -->
+        <a href="https://511on.ca/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-hwy-green px-2 py-0.5 rounded">Ontario</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">Ontario 511 — Talbot Trail &amp; Borders</h3>
+            <p class="text-xs text-slate-600 mt-1">Lake Erie north shore construction, border wait times, and winter road conditions.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- New England 511 -->
+        <a href="https://newengland511.org/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded">New England (NH / MA)</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">New England 511 — US Route 3</h3>
+            <p class="text-xs text-slate-600 mt-1">Franconia Notch Parkway updates, White Mountains weather, and NH/QC border alerts.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- Caltrans QuickMap -->
+        <a href="https://quickmap.dot.ca.gov/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded">California</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">Caltrans QuickMap — CA SR-3</h3>
+            <p class="text-xs text-slate-600 mt-1">Chain controls, mountain closures, and Trinity Alps / Scott Mountain Pass conditions.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <!-- DriveTexas -->
+        <a href="https://drivetexas.org/" target="_blank" rel="noopener noreferrer" class="group bg-white hover:bg-emerald-50/40 border border-slate-200 hover:border-hwy-green rounded-2xl p-4 transition shadow-sm flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded">Texas</span>
+            <h3 class="font-bold text-slate-900 mt-1.5 group-hover:text-hwy-green transition">DriveTexas (TxDOT) — TX SH-3</h3>
+            <p class="text-xs text-slate-600 mt-1">Houston-to-Galveston corridor traffic, coastal weather alerts, and causeway updates.</p>
+          </div>
+          <svg class="w-5 h-5 text-slate-400 group-hover:text-hwy-green shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
     </section>
 
   </main>
 
-  <!-- Advertising / Pre-Filled Inquiry Modal -->
-  <div class="modal-backdrop" id="adModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Advertise on Hwy3.com</h3>
-        <button class="close-btn" onclick="closeAdModal()">&times;</button>
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-slate-400); margin-bottom: 1.25rem;">
-        Connect with thousands of road trippers and travelers along our featured routes. Select your preferences below to draft your inquiry directly to <strong style="color: var(--text-slate-100);">ALL4AIM@HOTMAIL.com</strong>.
-      </p>
-      
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <div class="form-group">
-          <label>Target Route / Region</label>
-          <select id="adRoute" class="form-control">
-            <option value="Canada's Crowsnest Highway 3 (BC &amp; AB)">Canada's Crowsnest Highway 3 (BC &amp; AB)</option>
-            <option value="Ontario Highway 3 (Talbot Trail)">Ontario Highway 3 (Talbot Trail)</option>
-            <option value="U.S. Route 3 (New England)">U.S. Route 3 (New England)</option>
-            <option value="California State Route 3">California State Route 3</option>
-            <option value="Texas State Highway 3">Texas State Highway 3</option>
-            <option value="Network-Wide (All Routes)">Network-Wide (All Routes)</option>
-          </select>
+  <!-- FOOTER WITH DISCLAIMER -->
+  <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <!-- Brand & Free Mission -->
+        <div class="md:col-span-8 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-10 bg-hwy-green rounded-lg border-2 border-white flex flex-col items-center justify-center text-white font-black">
+              <span class="text-[7px] uppercase leading-none">HWY</span>
+              <span class="text-base leading-none">3</span>
+            </div>
+            <span class="text-lg font-extrabold text-white">Hwy3.com</span>
+            <span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">
+              100% Free Resource
+            </span>
+          </div>
+          <p class="text-sm text-slate-400 leading-relaxed max-w-2xl">
+            An open, zero-paywall informational directory dedicated to physical Highway 3 routes across Canada and the United States—anchored by British Columbia &amp; Alberta's iconic Crowsnest Highway.
+          </p>
         </div>
 
-        <div class="form-group">
-          <label>Business Name</label>
-          <input type="text" id="adBusiness" class="form-control" placeholder="e.g., Mountain View Lodge &amp; Cafe">
-        </div>
-
-        <div class="form-group">
-          <label>Placement Interest</label>
-          <select id="adPlacement" class="form-control">
-            <option value="Featured Stop / Pinned Waypoint">Featured Stop / Pinned Waypoint</option>
-            <option value="Route Sponsor (Exclusive Banner)">Route Sponsor (Exclusive Banner)</option>
-            <option value="Category Partner (Lodging / Dining / Fuel)">Category Partner (Lodging / Dining / Fuel)</option>
-            <option value="General Advertising Inquiry">General Advertising Inquiry</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Additional Notes / Website</label>
-          <textarea id="adNotes" class="form-control" rows="3" placeholder="Tell us about your business or specific dates..."></textarea>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-          <button type="button" class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="sendAdEmail()">
-            Open Pre-Filled Email
-          </button>
-          <button type="button" class="btn" onclick="copyAdEmail()">
-            Copy Email Address
-          </button>
+        <!-- Route Quick Links -->
+        <div class="md:col-span-4 space-y-2">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-white">Highway 3 Corridors</h4>
+          <ul class="space-y-1.5 text-xs text-slate-400">
+            <li><button type="button" onclick="selectRoute('crowsnest'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">BC &amp; Alberta Hwy 3 (Crowsnest)</button></li>
+            <li><button type="button" onclick="selectRoute('ontario'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">Ontario Hwy 3 (Talbot Trail)</button></li>
+            <li><button type="button" onclick="selectRoute('us3'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">U.S. Route 3 (New England)</button></li>
+            <li><button type="button" onclick="selectRoute('ca3'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">California State Route 3</button></li>
+            <li><button type="button" onclick="selectRoute('tx3'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">Texas State Highway 3</button></li>
+          </ul>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Footer -->
-  <footer>
-    <div class="footer-container">
-      <div class="footer-top">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <div class="logo-badge" style="font-size: 1rem; padding: 0.25rem 0.5rem;">Hwy 3</div>
-          <span style="font-weight: 700; font-size: 0.95rem;">Hwy3.com Road &amp; Travel Network</span>
-        </div>
-        <div class="footer-links">
-          <a href="#" onclick="openAdModal(); return false;">Advertise With Us</a>
-          <a href="mailto:ALL4AIM@HOTMAIL.com">Contact Support</a>
-          <a href="#" onclick="alert('Hwy3.com is a 100% free independent travel and roadway directory.'); return false;">About &amp; Disclaimer</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div>&copy; 2026 Hwy3.com. 100% Free Information Portal. Unaffiliated with any child products or trademark holders.</div>
-        <div style="color: var(--accent-sky);">Direct Advertising: ALL4AIM@HOTMAIL.com</div>
+      <!-- Trademark & Independence Disclaimer -->
+      <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-400">
+        <p class="leading-relaxed max-w-4xl">
+          <strong class="text-slate-200">Disclaimer:</strong> Hwy3.com is an independent public roadway travel, geography, and road-trip information portal. It is not affiliated with, endorsed by, or connected to any children's apparel, toy, or consumer merchandise brands. Always verify official provincial or state 511 advisories before mountain or winter travel.
+        </p>
+        <p class="shrink-0 text-slate-500">© <span id="footer-year"></span> Hwy3.com</p>
       </div>
     </div>
   </footer>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+  <!-- =====================================================================
+       APPLICATION DATA & INTERACTIVE LOGIC
+  ====================================================================== -->
   <script>
-    // Comprehensive Route Data
-    const routesData = {
+    // -----------------------------------------------------------------------
+    // 1. COMPREHENSIVE ROUTE & WAYPOINT DATASET
+    // -----------------------------------------------------------------------
+    const ROUTES_DATA = {
       crowsnest: {
         id: 'crowsnest',
-        name: "Canada's Crowsnest Highway 3",
-        shortName: "BC/AB Hwy 3",
-        badge: "Flagship Route",
-        desc: "Connecting Hope, BC to Medicine Hat, Alberta through the Cascade Mountains, Okanagan Valley, and Kootenay Rockies.",
+        badge: 'Flagship Scenic Corridor • BC & Alberta',
+        endpoints: 'Hope, BC ⇄ Medicine Hat, AB',
+        title: "Canada's Crowsnest Highway (Hwy 3)",
+        shieldCode: 'BC / AB HWY 3',
+        description:
+          'Stretching 1,166 km (725 miles) across southern British Columbia and Alberta, Highway 3 winds through coastal rainforests, desert orchards, mountain passes, historic mining towns, and wide-open prairie skies.',
         distanceKm: 1166,
-        timeEst: "13h 45m",
-        elevationPeak: "1,775 m (Kootenay Pass)",
-        officialPortalName: "DriveBC / 511 Alberta",
-        officialPortals: [
-          { name: "DriveBC Road Conditions", url: "https://drivebc.ca" },
-          { name: "511 Alberta Travel", url: "https://511.alberta.ca" }
+        driveTime: '13h 30m',
+        summit: '1,775 m (Kootenay)',
+        seasonNote:
+          'Seasonal Advisory: Winter tires or chains are legally required Oct 1 – Apr 30 on BC mountain passes (Allison Pass, Sunday Summit, and Kootenay Pass).',
+        directoryHeading: 'Crowsnest Highway Stages & Waypoints',
+        directorySubheading:
+          'West-to-East guide from Hope, British Columbia through the Okanagan & Kootenay Rockies to Medicine Hat, Alberta.',
+        stages: [
+          'All Stages',
+          'Hope & Manning Park',
+          'Princeton & Similkameen',
+          'Osoyoos & South Okanagan',
+          'Boundary Country',
+          'Kootenay Rockies',
+          'Crowsnest Pass & Alberta'
         ],
-        center: [49.3850, -118.5798],
-        zoom: 7,
         waypoints: [
-          { name: "Hope, BC", type: "Scenic", lat: 49.3826, lng: -121.4428, desc: "Western terminus of Highway 3 at the Fraser River junction.", dist: "0 km" },
-          { name: "Manning Park Resort", type: "Lodging", lat: 49.0664, lng: -120.7812, desc: "Alpine resort nestled in E.C. Manning Provincial Park.", dist: "64 km" },
-          { name: "Princeton, BC", type: "Dining", lat: 49.4608, lng: -120.5055, desc: "Historic mining and ranching hub on the Similkameen River.", dist: "122 km" },
-          { name: "Keremeos, BC", type: "Scenic", lat: 49.2086, lng: -119.8291, desc: "Fruit Bowl of Canada featuring roadside fruit stands.", dist: "191 km" },
-          { name: "Osoyoos, BC", type: "Lodging", lat: 49.0329, lng: -119.4678, desc: "Canada's warmest desert lake town and premier wine region.", dist: "241 km" },
-          { name: "Grand Forks, BC", type: "Dining", lat: 49.0325, lng: -118.4411, desc: "Historic Doukhobor heritage center at the Kettle River.", dist: "374 km" },
-          { name: "Castlegar, BC", type: "Fuel / EV", lat: 49.3248, lng: -117.6569, desc: "Sculpture capital and confluence of the Columbia and Kootenay rivers.", dist: "457 km" },
-          { name: "Creston, BC", type: "Scenic", lat: 49.0964, lng: -116.5126, desc: "Agricultural valley renowned for orchards, breweries, and wetlands.", dist: "557 km" },
-          { name: "Kootenay Pass (Summit)", type: "Scenic", lat: 49.0531, lng: -116.8521, desc: "One of the highest highway passes in Canada at 1,775 meters.", dist: "598 km" },
-          { name: "Fernie, BC", type: "Lodging", lat: 49.5085, lng: -115.0625, desc: "World-class ski town surrounded by the rugged Lizard Range.", dist: "693 km" },
-          { name: "Crowsnest Pass / Blairmore, AB", type: "Scenic", lat: 49.6105, lng: -114.4363, desc: "Historic coal mining towns crossing the Great Divide into Alberta.", dist: "732 km" },
-          { name: "Lethbridge, AB", type: "Fuel / EV", lat: 49.6935, lng: -112.8430, desc: "Major southern Alberta hub featuring the majestic High Level Bridge.", dist: "839 km" },
-          { name: "Medicine Hat, AB", type: "Dining", lat: 50.0421, lng: -110.6791, desc: "The Gas City, marking the eastern terminus of Highway 3.", dist: "945 km" }
+          {
+            num: 1,
+            name: 'Hope — Western Mile Zero',
+            region: 'Hope, BC',
+            stage: 'Hope & Manning Park',
+            category: 'Highway Towns',
+            kmFromStart: 0,
+            elevationM: 41,
+            lat: 49.3858,
+            lng: -121.4419,
+            highlight: 'Gateway to the Cascade Mountains, Othello Tunnels & chainsaw carvings.',
+            details:
+              'Where the Trans-Canada Highway (Hwy 1) splits east onto Highway 3. Fuel up here before climbing into the Cascade Mountains; visit the Othello Tunnels in Coquihalla Canyon.',
+            tip: 'Full-service fuel, EV fast chargers, and groceries available before entering E.C. Manning Park.'
+          },
+          {
+            num: 2,
+            name: 'E.C. Manning Provincial Park',
+            region: 'Cascade Mountains, BC',
+            stage: 'Hope & Manning Park',
+            category: 'Parks & Lakes',
+            kmFromStart: 68,
+            elevationM: 1342,
+            lat: 49.0645,
+            lng: -120.7852,
+            highlight: 'Cascade Lookout, Lightning Lake & subalpine wildflower meadows.',
+            details:
+              'Crosses Allison Pass (1,342 m). Stop at Lightning Lake for canoeing and lakeside trails, or drive up to Cascade Lookout for panoramic views into Washington State.',
+            tip: 'Watch for wildlife along the highway corridor and check DriveBC for snow conditions on Allison Pass.'
+          },
+          {
+            num: 3,
+            name: 'Princeton & Vermilion Forks',
+            region: 'Similkameen, BC',
+            stage: 'Princeton & Similkameen',
+            category: 'Highway Towns',
+            kmFromStart: 134,
+            elevationM: 700,
+            lat: 49.4589,
+            lng: -120.5061,
+            highlight: 'Historic mining & ranching town at the confluence of the Tulameen & Similkameen Rivers.',
+            details:
+              'Known for its bronze heritage statues, Kettle Valley Rail Trail access, and surrounding trout lakes. Marks the transition from wet coastal mountains to dry interior pine forests.',
+            tip: 'Great mid-morning coffee, fuel, and visitor centre stop.'
+          },
+          {
+            num: 4,
+            name: 'Keremeos & Cawston Fruit Stands',
+            region: 'Similkameen Valley, BC',
+            stage: 'Princeton & Similkameen',
+            category: 'Food & Wineries',
+            kmFromStart: 202,
+            elevationM: 415,
+            lat: 49.2025,
+            lng: -119.8294,
+            highlight: 'Fruit Stand Capital of Canada, organic farms & Historic Grist Mill.',
+            details:
+              'Highway 3 becomes lined with open-air fruit stands selling sun-ripened peaches, cherries, apples, and heirloom tomatoes, alongside boutique organic wineries in neighboring Cawston.',
+            tip: 'Visit the 1877 Grist Mill and Gardens in Keremeos for heritage tours and fresh baked goods.'
+          },
+          {
+            num: 5,
+            name: 'Osoyoos & Nk’Mip Desert Cultural Centre',
+            region: 'South Okanagan, BC',
+            stage: 'Osoyoos & South Okanagan',
+            category: 'Historic & Cultural',
+            kmFromStart: 249,
+            elevationM: 282,
+            lat: 49.0323,
+            lng: -119.4682,
+            highlight: 'Canada’s warmest freshwater lake, pocket desert ecology & Indigenous heritage.',
+            details:
+              'Home to Osoyoos Lake and the acclaimed Nk’Mip Desert Cultural Centre operated by the Osoyoos Indian Band. Surrounded by dozens of acclaimed estate wineries.',
+            tip: 'Summer temperatures regularly top 35°C (95°F)—carry extra water and book lakeside stays early.'
+          },
+          {
+            num: 6,
+            name: 'Anarchist Mountain Lookout',
+            region: 'East of Osoyoos, BC',
+            stage: 'Osoyoos & South Okanagan',
+            category: 'Scenic Overlooks',
+            kmFromStart: 263,
+            elevationM: 1233,
+            lat: 49.0268,
+            lng: -119.3321,
+            highlight: 'Sweeping switchback viewpoint high above Osoyoos Lake and the US border.',
+            details:
+              'Climbing dramatic switchbacks east out of the Okanagan Valley, this pull-off delivers one of the most photographed vistas on all of Highway 3.',
+            tip: 'Use lower gears when descending west toward Osoyoos to save your brakes.'
+          },
+          {
+            num: 7,
+            name: 'Greenwood & Grand Forks',
+            region: 'Boundary Country, BC',
+            stage: 'Boundary Country',
+            category: 'Historic & Cultural',
+            kmFromStart: 378,
+            elevationM: 520,
+            lat: 49.0333,
+            lng: -118.4400,
+            highlight: 'Canada’s smallest incorporated city (Greenwood) & Doukhobor borscht heritage.',
+            details:
+              'Greenwood preserves its 1890s copper-boom brick storefronts, while Grand Forks sits in a lush river valley celebrated for Russian Doukhobor bakeries and borscht.',
+            tip: 'Stop in Grand Forks for authentic borscht and fresh bread at local cafes.'
+          },
+          {
+            num: 8,
+            name: 'Christina Lake',
+            region: 'Boundary Country, BC',
+            stage: 'Boundary Country',
+            category: 'Parks & Lakes',
+            kmFromStart: 401,
+            elevationM: 445,
+            lat: 49.0439,
+            lng: -118.2117,
+            highlight: 'Warm, crystal-clear tree-lined lake with sandy provincial park beaches.',
+            details:
+              'Fed by warm thermal springs and surrounded by cedar-hemlock forest, Christina Lake Provincial Park is an ideal summer swimming and picnic break.',
+            tip: 'Accessible public beach and shaded picnic tables right off Highway 3.'
+          },
+          {
+            num: 9,
+            name: 'Castlegar & Confluence of Rivers',
+            region: 'West Kootenay, BC',
+            stage: 'Kootenay Rockies',
+            category: 'Highway Towns',
+            kmFromStart: 482,
+            elevationM: 450,
+            lat: 49.3256,
+            lng: -117.6661,
+            highlight: 'Sculpture Capital of Canada where the Kootenay & Columbia Rivers meet.',
+            details:
+              'Crosses the Paulson Summit (1,535 m) en route to Castlegar. Explore Millennium Park, the Doukhobor Discovery Centre, and the outdoor Sculpturewalk.',
+            tip: 'Major service hub with full EV fast-charging, grocery stores, and accommodations.'
+          },
+          {
+            num: 10,
+            name: 'Salmo-Creston Skyway (Kootenay Pass)',
+            region: 'Selkirk Mountains, BC',
+            stage: 'Kootenay Rockies',
+            category: 'Scenic Overlooks',
+            kmFromStart: 562,
+            elevationM: 1775,
+            lat: 49.0567,
+            lng: -117.0419,
+            highlight: 'Highest year-round paved highway summit on Hwy 3 at 1,775 m (5,823 ft).',
+            details:
+              'Sweeps past Bridal Veil Falls and Stagleap Provincial Park at the crest of the Selkirk Mountains. Bridal Lake rest area sits right at the summit.',
+            tip: 'Heavy winter snowfall and periodic avalanche control closures—always check DriveBC.'
+          },
+          {
+            num: 11,
+            name: 'Creston Valley & Wildlife Centre',
+            region: 'East Kootenay, BC',
+            stage: 'Kootenay Rockies',
+            category: 'Parks & Lakes',
+            kmFromStart: 604,
+            elevationM: 597,
+            lat: 49.0955,
+            lng: -116.5135,
+            highlight: '17,000-acre wetland sanctuary, orchards & local craft breweries.',
+            details:
+              'A broad agricultural valley bordered by the Purcell and Selkirk ranges, famous for birdwatching boardwalks, orchards, and scenic grain elevators.',
+            tip: 'Time zone changes from Pacific Time (PT) to Mountain Time (MT) just east of Creston!'
+          },
+          {
+            num: 12,
+            name: 'Cranbrook & Fort Steele Heritage Town',
+            region: 'Kootenay Rockies, BC',
+            stage: 'Kootenay Rockies',
+            category: 'Historic & Cultural',
+            kmFromStart: 711,
+            elevationM: 920,
+            lat: 49.5129,
+            lng: -115.7694,
+            highlight: 'Largest city in the East Kootenays, railway museum & 1890s gold-rush town.',
+            details:
+              'Gateway to the Canadian Rockies. Features the Cranbrook History Centre with luxury vintage railcars and nearby Fort Steele Heritage Town.',
+            tip: 'Ideal overnight base with full services before entering the Rocky Mountain Trench.'
+          },
+          {
+            num: 13,
+            name: 'Fernie & Lizard Range',
+            region: 'Elk Valley, BC',
+            stage: 'Kootenay Rockies',
+            category: 'Parks & Lakes',
+            kmFromStart: 808,
+            elevationM: 1010,
+            lat: 49.5042,
+            lng: -115.0631,
+            highlight: 'Iconic mountain town ringed by jagged limestone peaks & Elk River fly-fishing.',
+            details:
+              'World-renowned for deep powder skiing, mountain biking trails, historic brick downtown buildings, and dramatic views of the Three Sisters peaks.',
+            tip: 'Stop at Fairy Creek Falls trailhead or grab lunch along Victoria Avenue.'
+          },
+          {
+            num: 14,
+            name: 'Crowsnest Pass & Frank Slide (AB)',
+            region: 'Crowsnest Pass, AB',
+            stage: 'Crowsnest Pass & Alberta',
+            category: 'Historic & Cultural',
+            kmFromStart: 865,
+            elevationM: 1358,
+            lat: 49.5969,
+            lng: -114.4044,
+            highlight: 'Continental Divide crossing & the massive 1903 Turtle Mountain rockslide.',
+            details:
+              'Crossing from BC into Alberta at Crowsnest Pass (1,358 m), Highway 3 cuts directly through a 2-km boulder field from Canada’s deadliest rockslide. Visit the Frank Slide Interpretive Centre.',
+            tip: 'Stop at Lundbreck Falls just east of the pass for a dramatic double-chute waterfall.'
+          },
+          {
+            num: 15,
+            name: 'Fort Macleod & Lethbridge Viaduct',
+            region: 'Southern Alberta',
+            stage: 'Crowsnest Pass & Alberta',
+            category: 'Historic & Cultural',
+            kmFromStart: 1002,
+            elevationM: 910,
+            lat: 49.6935,
+            lng: -112.8418,
+            highlight: 'Historic NWMP fort, Head-Smashed-In Buffalo Jump & High Level Bridge.',
+            details:
+              'In Lethbridge, Highway 3 crosses the Oldman River Valley with clear views of the 1.6-km-long High Level Bridge—the largest railway trestle of its kind in the world.',
+            tip: 'Visit Nikka Yuko Japanese Garden in Lethbridge or detour 18 km west of Fort Macleod to Head-Smashed-In Buffalo Jump UNESCO site.'
+          },
+          {
+            num: 16,
+            name: 'Medicine Hat — Eastern Terminus',
+            region: 'Southeastern Alberta',
+            stage: 'Crowsnest Pass & Alberta',
+            category: 'Highway Towns',
+            kmFromStart: 1166,
+            elevationM: 690,
+            lat: 50.0405,
+            lng: -110.6764,
+            highlight: 'The "Gas City", Saamis Tepee & junction with the Trans-Canada Highway.',
+            details:
+              'Highway 3 concludes in sunny Medicine Hat along the South Saskatchewan River, home to the 20-storey Saamis Tepee and historic Medalta Potteries.',
+            tip: 'Connects directly onto Highway 1 east toward Saskatchewan.'
+          }
         ]
       },
+
       ontario: {
         id: 'ontario',
-        name: "Ontario Highway 3 (Talbot Trail)",
-        shortName: "ON Hwy 3",
-        badge: "Regional Route",
-        desc: "Parallels the north shore of Lake Erie from Windsor through Essex and Elgin counties to Fort Erie.",
-        distanceKm: 420,
-        timeEst: "5h 15m",
-        elevationPeak: "240 m",
-        officialPortalName: "Ontario 511",
-        officialPortals: [
-          { name: "Ontario 511 Travel", url: "https://511on.ca" }
-        ],
-        center: [42.3149, -82.5539],
-        zoom: 8,
+        badge: 'Great Lakes Scenic Drive • Ontario',
+        endpoints: 'Windsor / Detroit ⇄ Fort Erie / Buffalo',
+        title: 'Ontario Highway 3 (The Talbot Trail)',
+        shieldCode: 'ON HWY 3',
+        description:
+          'Paralleling the north shore of Lake Erie for roughly 260 km (162 miles), Ontario Highway 3—historically known as the Talbot Trail—connects Windsor to Fort Erie through beaches, birding hotspots, and Lake Erie North Shore wineries.',
+        distanceKm: 260,
+        driveTime: '3h 30m',
+        summit: '240 m (Niagara Escarpment)',
+        seasonNote:
+          'Seasonal Advisory: Watch for sudden lake-effect snow squalls between St. Thomas and Fort Erie from December through March.',
+        directoryHeading: 'Ontario Highway 3 — Talbot Trail Stops',
+        directorySubheading:
+          'West-to-East coastal route along Lake Erie’s northern shoreline from the Ambassador Bridge to the Peace Bridge.',
+        stages: ['All Stages', 'Essex & Point Pelee', 'Elgin & Norfolk Coast', 'Niagara River Terminus'],
         waypoints: [
-          { name: "Windsor, ON", type: "Fuel / EV", lat: 42.3149, lng: -83.0364, desc: "Western terminus across from Detroit, Michigan.", dist: "0 km" },
-          { name: "Leamington, ON", type: "Scenic", lat: 42.0536, lng: -82.6022, desc: "Tomato Capital of Canada near Point Pelee National Park.", dist: "55 km" },
-          { name: "Kingsville, ON", type: "Lodging", lat: 42.0378, lng: -82.7419, desc: "Canada's southernmost town with wineries and lakefront dining.", dist: "40 km" },
-          { name: "St. Thomas, ON", type: "Dining", lat: 42.7794, lng: -81.1856, desc: "Railway City famous for historic locomotive heritage.", dist: "155 km" },
-          { name: "Tillsonburg, ON", type: "Fuel / EV", lat: 42.8594, lng: -80.7289, desc: "Thriving agricultural and industrial hub.", dist: "195 km" },
-          { name: "Fort Erie, ON", type: "Scenic", lat: 42.9158, lng: -78.9329, desc: "Eastern terminus at the Peace Bridge to Buffalo, NY.", dist: "320 km" }
+          {
+            num: 1,
+            name: 'Windsor — Ambassador Bridge Gateway',
+            region: 'Essex County, ON',
+            stage: 'Essex & Point Pelee',
+            category: 'Highway Towns',
+            kmFromStart: 0,
+            elevationM: 180,
+            lat: 42.3001,
+            lng: -83.0165,
+            highlight: 'Western terminus linking Detroit, MI with Southwestern Ontario.',
+            details:
+              'Begins near the Detroit River crossing and heads southeast through Essex County’s fertile agricultural plains.',
+            tip: 'Check border crossing wait times before departing Windsor.'
+          },
+          {
+            num: 2,
+            name: 'Leamington & Point Pelee National Park',
+            region: 'Essex County, ON',
+            stage: 'Essex & Point Pelee',
+            category: 'Parks & Lakes',
+            kmFromStart: 54,
+            elevationM: 176,
+            lat: 42.0531,
+            lng: -82.5999,
+            highlight: 'Mainland Canada’s southernmost point, Monarch butterfly migration & estate wineries.',
+            details:
+              'Known as the Tomato Capital of Canada, Leamington sits just north of Point Pelee National Park and the Lake Erie North Shore wine appellation.',
+            tip: 'May and September offer world-famous bird and Monarch butterfly migrations.'
+          },
+          {
+            num: 3,
+            name: 'St. Thomas & Port Stanley Detour',
+            region: 'Elgin County, ON',
+            stage: 'Elgin & Norfolk Coast',
+            category: 'Historic & Cultural',
+            kmFromStart: 148,
+            elevationM: 225,
+            lat: 42.7774,
+            lng: -81.1827,
+            highlight: 'Canada’s Railway Capital, Jumbo the Elephant monument & Elevated Park.',
+            details:
+              'St. Thomas celebrates its rich rail history with the first elevated park in Canada, just 15 minutes north of the sandy beach town of Port Stanley.',
+            tip: 'Walk the St. Thomas Elevated Park for panoramic views over Kettle Creek Valley.'
+          },
+          {
+            num: 4,
+            name: 'Simcoe & Long Point Biosphere',
+            region: 'Norfolk County, ON',
+            stage: 'Elgin & Norfolk Coast',
+            category: 'Food & Wineries',
+            kmFromStart: 205,
+            elevationM: 220,
+            lat: 42.8373,
+            lng: -80.3040,
+            highlight: 'Ontario’s Garden—farm markets, craft cideries, breweries & sandy Lake Erie spits.',
+            details:
+              'Norfolk County is packed with roadside farm stands, lavender farms, wineries, and access to Long Point Provincial Park.',
+            tip: 'Late summer brings fresh sweet corn, peaches, and roadside apple cider.'
+          },
+          {
+            num: 5,
+            name: 'Fort Erie — Peace Bridge Terminus',
+            region: 'Niagara Region, ON',
+            stage: 'Niagara River Terminus',
+            category: 'Scenic Overlooks',
+            kmFromStart: 260,
+            elevationM: 185,
+            lat: 42.9018,
+            lng: -78.9322,
+            highlight: 'Old Fort Erie historic site & Niagara River waterfront views toward Buffalo, NY.',
+            details:
+              'Concludes at the head of the Niagara River across from Buffalo, just 25 minutes south of Niagara Falls.',
+            tip: 'Follow the Niagara River Parkway north from Fort Erie for a scenic drive straight to Horseshoe Falls.'
+          }
         ]
       },
+
       us3: {
         id: 'us3',
-        name: "U.S. Route 3 (New England)",
-        shortName: "US-3 New England",
-        badge: "Scenic Trail",
-        desc: "Runs from Cambridge, Massachusetts through New Hampshire's Lakes Region and White Mountains to Pittsburg.",
-        distanceKm: 434,
-        timeEst: "5h 45m",
-        elevationPeak: "600 m",
-        officialPortalName: "New England 511",
-        officialPortals: [
-          { name: "New Hampshire 511", url: "https://www.nashinternetservices.com" },
-          { name: "MassDOT Traffic", url: "https://mass511.com" }
-        ],
-        center: [43.8563, -71.5989],
-        zoom: 8,
+        badge: 'New England Heritage & Mountains • MA & NH',
+        endpoints: 'Cambridge, MA ⇄ Pittsburg, NH (Canada Border)',
+        title: 'U.S. Route 3 (New England)',
+        shieldCode: 'US 3',
+        description:
+          'Running 278 miles (447 km) from the Charles River in Cambridge, Massachusetts north through New Hampshire’s Lakes Region, Franconia Notch, and the White Mountains all the way to the Quebec border.',
+        distanceKm: 447,
+        driveTime: '6h 15m',
+        summit: '598 m (Franconia Notch)',
+        seasonNote:
+          'Seasonal Advisory: Peak fall foliage occurs late September in Pittsburg/White Mountains and mid-October in southern NH & Massachusetts.',
+        directoryHeading: 'U.S. Route 3 — New England Waypoints',
+        directorySubheading:
+          'South-to-North journey from Greater Boston through Lake Winnipesaukee and Franconia Notch to the Canadian border.',
+        stages: ['All Stages', 'Massachusetts & Merrimack Valley', 'Lakes Region & White Mountains', 'Great North Woods'],
         waypoints: [
-          { name: "Cambridge / Boston, MA", type: "Fuel / EV", lat: 42.3736, lng: -71.1097, desc: "Southern terminus near Harvard University and the Charles River.", dist: "0 km" },
-          { name: "Nashua, NH", type: "Dining", lat: 42.7654, lng: -71.4676, desc: "Historic mill city on the Nashua and Merrimack rivers.", dist: "75 km" },
-          { name: "Concord, NH", type: "Lodging", lat: 43.2081, lng: -71.5376, desc: "New Hampshire state capital along the Merrimack River.", dist: "115 km" },
-          { name: "Laconia / Weirs Beach, NH", type: "Scenic", lat: 43.5281, lng: -71.4623, desc: "Heart of Lake Winnipesaukee resort and vacation country.", dist: "165 km" },
-          { name: "Lincoln / Franconia Notch, NH", type: "Scenic", lat: 44.1084, lng: -71.6684, desc: "Mountain gateway through the White Mountains National Forest.", dist: "215 km" },
-          { name: "Pittsburg / Canadian Border, NH", type: "Scenic", lat: 45.0501, lng: -71.3915, desc: "Northernmost town in New Hampshire at the Quebec border.", dist: "310 km" }
+          {
+            num: 1,
+            name: 'Cambridge & Lowell Historic Corridor',
+            region: 'Eastern Massachusetts',
+            stage: 'Massachusetts & Merrimack Valley',
+            category: 'Historic & Cultural',
+            kmFromStart: 0,
+            elevationM: 12,
+            lat: 42.3736,
+            lng: -71.1097,
+            highlight: 'Southern terminus at Memorial Drive, Lexington/Concord history & Lowell National Park.',
+            details:
+              'Starts along the Charles River in Cambridge and passes near Minute Man National Historical Park and the textile mill canals of Lowell.',
+            tip: 'Use the US-3 freeway segment north of Burlington for fast transit into New Hampshire.'
+          },
+          {
+            num: 2,
+            name: 'Meredith & Lake Winnipesaukee',
+            region: 'Lakes Region, NH',
+            stage: 'Lakes Region & White Mountains',
+            category: 'Parks & Lakes',
+            kmFromStart: 175,
+            elevationM: 155,
+            lat: 43.6575,
+            lng: -71.5003,
+            highlight: 'New Hampshire’s largest lake, Weirs Beach boardwalk & scenic lake cruises.',
+            details:
+              'US-3 hugs the western shoreline of Lake Winnipesaukee through Laconia, Weirs Beach, and Meredith with sweeping water and mountain views.',
+            tip: 'Stop at Meredith Town Docks for lakeside dining and views across the bay.'
+          },
+          {
+            num: 3,
+            name: 'Franconia Notch State Park & The Flume',
+            region: 'White Mountains, NH',
+            stage: 'Lakes Region & White Mountains',
+            category: 'Scenic Overlooks',
+            kmFromStart: 256,
+            elevationM: 598,
+            lat: 44.1419,
+            lng: -71.6812,
+            highlight: 'Dramatic mountain pass shared with I-93, Flume Gorge, Cannon Mtn & Echo Lake.',
+            details:
+              'One of New England’s premier mountain passes, carved between the Kinsman and Franconia ranges with granite cliffs rising 2,000 feet above the roadway.',
+            tip: 'Reserve Flume Gorge & Cannon Aerial Tramway tickets online during peak summer and foliage weekends.'
+          },
+          {
+            num: 4,
+            name: 'Colebrook & Dixville Notch Gateway',
+            region: 'Coös County, NH',
+            stage: 'Great North Woods',
+            category: 'Highway Towns',
+            kmFromStart: 382,
+            elevationM: 315,
+            lat: 44.8945,
+            lng: -71.4959,
+            highlight: 'Upper Connecticut River Valley & gateway to northernmost New Hampshire.',
+            details:
+              'Follows the Connecticut River north along the Vermont border into New Hampshire’s quiet, forested Great North Woods.',
+            tip: 'Last major full-service town for groceries and fuel before heading into the Connecticut Lakes.'
+          },
+          {
+            num: 5,
+            name: 'Pittsburg & Connecticut Lakes (Chartierville Border)',
+            region: 'Northernmost NH / QC Border',
+            stage: 'Great North Woods',
+            category: 'Parks & Lakes',
+            kmFromStart: 447,
+            elevationM: 690,
+            lat: 45.2528,
+            lng: -71.2041,
+            highlight: 'Moose Alley, First/Second/Third Connecticut Lakes & Canadian border crossing.',
+            details:
+              'Known as "Moose Alley" for frequent dusk and dawn moose sightings along the boggy shoulders of US-3 before reaching the Quebec border.',
+            tip: 'Drive cautiously at dawn and dusk—moose frequently cross US-3 north of Pittsburg.'
+          }
         ]
       },
+
       ca3: {
         id: 'ca3',
-        name: "California State Route 3",
-        shortName: "CA State Route 3",
-        badge: "Mountain Hwy",
-        desc: "Rugged Northern California scenic byway through the Trinity Alps and Shasta-Trinity National Forest.",
-        distanceKm: 233,
-        timeEst: "3h 30m",
-        elevationPeak: "1,220 m",
-        officialPortalName: "Caltrans QuickMap",
-        officialPortals: [
-          { name: "Caltrans QuickMap", url: "https://quickmap.dot.ca.gov" }
-        ],
-        center: [40.9752, -122.7313],
-        zoom: 9,
+        badge: 'Trinity Alps Scenic Byway • Northern California',
+        endpoints: 'Peanut, CA ⇄ Montague / Yreka, CA',
+        title: 'California State Route 3',
+        shieldCode: 'CA SR-3',
+        description:
+          'Winding 146 miles (235 km) through the remote Trinity Alps and Shasta-Trinity National Forest, California SR-3 is a quiet, high-elevation mountain highway beloved by motorcyclists, anglers, and backcountry hikers.',
+        distanceKm: 235,
+        driveTime: '3h 45m',
+        summit: '1,527 m (Scott Mountain)',
+        seasonNote:
+          'Seasonal Advisory: Scott Mountain Pass (5,010 ft) experiences heavy winter snow and chain controls; check Caltrans QuickMap.',
+        directoryHeading: 'California SR-3 — Trinity Alps Stops',
+        directorySubheading:
+          'South-to-North mountain route through Hayfork, Weaverville, Trinity Lake, and Scott Valley.',
+        stages: ['All Stages'],
         waypoints: [
-          { name: "Red Bluff, CA", type: "Fuel / EV", lat: 40.1785, lng: -122.2358, desc: "Southern junction along Interstate 5 in the Sacramento Valley.", dist: "0 km" },
-          { name: "Hayfork, CA", type: "Dining", lat: 40.5638, lng: -123.1558, desc: "Mountain valley community in the Trinity mountains.", dist: "95 km" },
-          { name: "Weaverville, CA", type: "Lodging", lat: 40.7308, lng: -122.9386, desc: "Historic Gold Rush town with unique Taoist Joss House.", dist: "128 km" },
-          { name: "Montague, CA", type: "Scenic", lat: 41.7299, lng: -122.5332, desc: "Northern terminus in Shasta Valley near Interstate 5.", dist: "233 km" }
+          {
+            num: 1,
+            name: 'Weaverville Historic District',
+            region: 'Trinity County, CA',
+            stage: 'All Stages',
+            category: 'Historic & Cultural',
+            kmFromStart: 50,
+            elevationM: 625,
+            lat: 40.7310,
+            lng: -122.9420,
+            highlight: '1850s Gold Rush town, spiral staircases & Joss House State Historic Park.',
+            details:
+              'Home to the oldest continuously used Taoist temple in California (1874) and well-preserved Gold Rush brick buildings.',
+            tip: 'Main supply and fuel stop in the Trinity Alps region.'
+          },
+          {
+            num: 2,
+            name: 'Trinity Lake & Trinity Alps Wilderness',
+            region: 'Shasta-Trinity National Forest, CA',
+            stage: 'All Stages',
+            category: 'Parks & Lakes',
+            kmFromStart: 88,
+            elevationM: 722,
+            lat: 40.8920,
+            lng: -122.7650,
+            highlight: '145 miles of forested shoreline, houseboating & jagged granite alpine peaks.',
+            details:
+              'SR-3 traces the western shore of Trinity Lake with trailheads leading directly into the 500,000-acre Trinity Alps Wilderness.',
+            tip: 'Bowerman Barn and Stuart Fork trailhead are easy stops right off the highway.'
+          },
+          {
+            num: 3,
+            name: 'Scott Mountain Summit & Callahan',
+            region: 'Siskiyou County, CA',
+            stage: 'All Stages',
+            category: 'Scenic Overlooks',
+            kmFromStart: 152,
+            elevationM: 1527,
+            lat: 41.2785,
+            lng: -122.6990,
+            highlight: '5,010-foot pass separating the Trinity River watershed from Scott Valley.',
+            details:
+              'Features tight alpine switchbacks and dramatic views descending into the historic ranching valley of Callahan and Etna.',
+            tip: 'Stop in Etna for small-town craft beer and mountain bakery treats.'
+          },
+          {
+            num: 4,
+            name: 'Yreka & Montague Northern Terminus',
+            region: 'Siskiyou County, CA',
+            stage: 'All Stages',
+            category: 'Highway Towns',
+            kmFromStart: 235,
+            elevationM: 790,
+            lat: 41.7354,
+            lng: -122.6345,
+            highlight: 'Views of 14,179-ft Mount Shasta & junction with Interstate 5.',
+            details:
+              'Emerges from the Klamath Mountains into Shasta Valley with commanding views of snow-capped Mount Shasta.',
+            tip: 'Connects with I-5 for northbound travel toward Ashland and Medford, Oregon.'
+          }
         ]
       },
+
       tx3: {
         id: 'tx3',
-        name: "Texas State Highway 3",
-        shortName: "TX State Highway 3",
-        badge: "Coastal Link",
-        desc: "Historic regional highway connecting Houston to Galveston parallel to Interstate 45.",
-        distanceKm: 64,
-        timeEst: "1h 10m",
-        elevationPeak: "10 m",
-        officialPortalName: "DriveTexas",
-        officialPortals: [
-          { name: "DriveTexas 511", url: "https://drivetexas.org" }
-        ],
-        center: [29.4587, -95.0747],
-        zoom: 10,
+        badge: 'Gulf Coast & Space Corridor • Texas',
+        endpoints: 'Houston, TX ⇄ Galveston Island, TX',
+        title: 'Texas State Highway 3',
+        shieldCode: 'TX SH-3',
+        description:
+          'Running 47 miles (76 km) parallel to I-45 from downtown Houston to the Galveston Causeway, Texas SH-3 (Old Galveston Road) serves the Clear Lake aerospace corridor, coastal bayous, and Gulf beaches.',
+        distanceKm: 76,
+        driveTime: '1h 15m',
+        summit: '16 m (Houston)',
+        seasonNote:
+          'Seasonal Advisory: Monitor tropical weather and coastal flood advisories during Gulf hurricane season (June – November).',
+        directoryHeading: 'Texas State Highway 3 — Corridor Stops',
+        directorySubheading:
+          'North-to-South local arterial route from Houston through Clear Lake / NASA to Galveston Bay.',
+        stages: ['All Stages'],
         waypoints: [
-          { name: "Houston (Southeast), TX", type: "Fuel / EV", lat: 29.6585, lng: -95.2346, desc: "Northern connection serving the Gulf Freeway corridor.", dist: "0 km" },
-          { name: "Pasadena, TX", type: "Dining", lat: 29.6911, lng: -95.2091, desc: "Industrial and residential hub along the Houston ship channel.", dist: "15 km" },
-          { name: "Webster / League City, TX", type: "Lodging", lat: 29.5358, lng: -95.1219, desc: "Thriving commercial and aerospace corridor near NASA Johnson Space Center.", dist: "32 km" },
-          { name: "Galveston, TX", type: "Scenic", lat: 29.3013, lng: -94.7977, desc: "Historic island city and Gulf Coast resort destination.", dist: "64 km" }
+          {
+            num: 1,
+            name: 'Houston & Hobby Airport Corridor',
+            region: 'Harris County, TX',
+            stage: 'All Stages',
+            category: 'Highway Towns',
+            kmFromStart: 0,
+            elevationM: 15,
+            lat: 29.6540,
+            lng: -95.2768,
+            highlight: '1940 Air Terminal Museum & alternative arterial route south of downtown Houston.',
+            details:
+              'Follows the historic Galveston–Houston Electric Railway corridor alongside Union Pacific tracks.',
+            tip: 'Useful local bypass when I-45 Gulf Freeway experiences heavy congestion.'
+          },
+          {
+            num: 2,
+            name: 'Clear Lake & Space Center Houston',
+            region: 'Webster / Nassau Bay, TX',
+            stage: 'All Stages',
+            category: 'Historic & Cultural',
+            kmFromStart: 32,
+            elevationM: 6,
+            lat: 29.5519,
+            lng: -95.0982,
+            highlight: 'NASA Johnson Space Center, Saturn V rocket & Clear Lake marinas.',
+            details:
+              'Just east of SH-3 via NASA Parkway sits Space Center Houston and the Kemah Boardwalk along Galveston Bay.',
+            tip: 'Allow at least 3–4 hours if touring NASA Johnson Space Center.'
+          },
+          {
+            num: 3,
+            name: 'Texas City Dike & Galveston Bay',
+            region: 'Galveston County, TX',
+            stage: 'All Stages',
+            category: 'Parks & Lakes',
+            kmFromStart: 62,
+            elevationM: 2,
+            lat: 29.3838,
+            lng: -94.9027,
+            highlight: '5-mile man-made pier jutting into Galveston Bay for fishing & ship-watching.',
+            details:
+              'Offers close-up views of massive ocean-going vessels navigating the Houston Ship Channel.',
+            tip: 'Great spot for coastal sunsets and pelicans before crossing to Galveston Island.'
+          },
+          {
+            num: 4,
+            name: 'Galveston Island Causeway Junction',
+            region: 'Galveston, TX',
+            stage: 'All Stages',
+            category: 'Scenic Overlooks',
+            kmFromStart: 76,
+            elevationM: 2,
+            lat: 29.3013,
+            lng: -94.7977,
+            highlight: 'Gateway to Galveston’s Historic Strand District, Seawall & Gulf beaches.',
+            details:
+              'Merges with I-45 at Virginia Point right before crossing the Galveston Causeway onto the barrier island.',
+            tip: 'Continue onto Broadway Avenue in Galveston to reach the historic Victorian districts and beachfront.'
+          }
         ]
       }
     };
 
+    // -----------------------------------------------------------------------
+    // 2. APPLICATION STATE
+    // -----------------------------------------------------------------------
     let currentRouteKey = 'crowsnest';
-    let isMetric = true;
-    let activeCategory = 'all';
-    let map, markers = [];
+    let currentUnit = 'km'; // 'km' or 'mi'
+    let currentStage = 'All Stages';
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let selectedWaypointIndex = 0;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initTabs();
-      initMap();
-      loadRoute('crowsnest');
-      calculateTrip();
-    });
+    let leafletMap = null;
+    let routePolyline = null;
+    let markerLayerGroup = null;
+    let markerRefs = [];
 
-    function initTabs() {
-      const container = document.getElementById('routeTabs');
-      container.innerHTML = '';
-      Object.keys(routesData).forEach(key => {
-        const route = routesData[key];
-        const btn = document.createElement('button');
-        btn.className = `route-tab ${key === currentRouteKey ? 'active' : ''}`;
-        btn.textContent = route.name;
-        btn.onclick = () => switchRoute(key);
-        container.appendChild(btn);
-      });
+    // -----------------------------------------------------------------------
+    // 3. HELPER FORMATTING FUNCTIONS
+    // -----------------------------------------------------------------------
+    function formatDistance(kmValue) {
+      if (currentUnit === 'mi') {
+        const miles = Math.round(kmValue * 0.621371);
+        return `${miles.toLocaleString()} mi`;
+      }
+      return `${Math.round(kmValue).toLocaleString()} km`;
     }
 
-    function initMap() {
-      map = L.map('map', { zoomControl: true }).setView([49.3850, -118.5798], 7);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(map);
+    function formatElevation(metersValue) {
+      if (currentUnit === 'mi') {
+        const feet = Math.round(metersValue * 3.28084);
+        return `${feet.toLocaleString()} ft`;
+      }
+      return `${metersValue.toLocaleString()} m`;
     }
 
-    function switchRoute(key) {
-      currentRouteKey = key;
-      document.querySelectorAll('.route-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.textContent === routesData[key].name);
-      });
-      loadRoute(key);
+    function trackAnalyticsEvent(eventName, params) {
+      try {
+        if (typeof gtag === 'function') {
+          gtag('event', eventName, params || {});
+        }
+      } catch (e) {
+        // Safe no-op
+      }
     }
 
-    function loadRoute(key) {
-      const route = routesData[key];
-      
-      document.getElementById('infoRouteName').textContent = route.name;
-      document.getElementById('infoRouteDesc').textContent = route.desc;
-      document.getElementById('infoBadge').textContent = route.badge;
-      
-      const distMultiplier = isMetric ? 1 : 0.621371;
-      const distUnit = isMetric ? 'km' : 'mi';
-      
-      const convertedDist = Math.round(route.distanceKm * distMultiplier);
-      document.getElementById('statDistance').textContent = `${convertedDist.toLocaleString()} ${distUnit}`;
-      document.getElementById('statTime').textContent = route.timeEst;
-      document.getElementById('statElevation').textContent = route.elevationPeak;
-      document.getElementById('statRoadPortal').innerHTML = `<a href="${route.officialPortals[0].url}" target="_blank" style="color: var(--accent-sky); text-decoration: underline; font-size: 0.9rem;">${route.officialPortalName}</a>`;
+    // -----------------------------------------------------------------------
+    // 4. UNIT TOGGLE (KM / MILES)
+    // -----------------------------------------------------------------------
+    function setUnit(unit) {
+      currentUnit = unit;
+      const kmBtn = document.getElementById('unit-km-btn');
+      const miBtn = document.getElementById('unit-mi-btn');
 
-      const resBar = document.getElementById('resourcesBar');
-      resBar.innerHTML = '';
-      route.officialPortals.forEach(portal => {
-        const a = document.createElement('a');
-        a.href = portal.url;
-        a.target = '_blank';
-        a.className = 'btn';
-        a.style.fontSize = '0.78rem';
-        a.innerHTML = `🌐 ${portal.name}`;
-        resBar.appendChild(a);
-      });
+      if (unit === 'km') {
+        kmBtn.className = 'px-3 py-1.5 rounded-lg bg-hwy-green text-white shadow-sm transition';
+        miBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      } else {
+        miBtn.className = 'px-3 py-1.5 rounded-lg bg-hwy-green text-white shadow-sm transition';
+        kmBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      }
 
-      map.setView(route.center, route.zoom);
-      renderWaypoints();
+      renderHeroStats();
+      renderSpotlight(selectedWaypointIndex);
+      renderStopsGrid();
+      populateTripCalculatorDropdowns();
+      updateTripEstimate();
     }
 
-    function renderWaypoints() {
-      const route = routesData[currentRouteKey];
-      const listEl = document.getElementById('waypointsList');
-      const searchTerm = document.getElementById('waypointSearch').value.toLowerCase();
-      
-      listEl.innerHTML = '';
-      markers.forEach(m => map.removeLayer(m));
-      markers = [];
+    // -----------------------------------------------------------------------
+    // 5. ROUTE SWITCHER LOGIC
+    // -----------------------------------------------------------------------
+    function selectRoute(routeKey) {
+      if (!ROUTES_DATA[routeKey]) return;
+      currentRouteKey = routeKey;
+      currentStage = 'All Stages';
+      currentCategory = 'all';
+      currentSearch = '';
+      selectedWaypointIndex = 0;
 
-      const filtered = route.waypoints.filter(wp => {
-        const matchesSearch = wp.name.toLowerCase().includes(searchTerm) || wp.desc.toLowerCase().includes(searchTerm);
-        const matchesCategory = activeCategory === 'all' || wp.type === activeCategory;
-        return matchesSearch && matchesCategory;
+      const searchInput = document.getElementById('stop-search-input');
+      if (searchInput) searchInput.value = '';
+
+      // Update active tab styling
+      document.querySelectorAll('.route-tab').forEach((btn) => {
+        const isTarget = btn.getAttribute('data-route') === routeKey;
+        if (isTarget) {
+          btn.className =
+            'route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition border bg-hwy-green text-white border-hwy-green shadow-sm';
+        } else {
+          btn.className =
+            'route-tab shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition border bg-white text-slate-700 border-slate-200 hover:border-hwy-green hover:text-hwy-green';
+        }
       });
 
-      if (filtered.length === 0) {
-        listEl.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--text-slate-400); font-size: 0.85rem;">No waypoints match your filter.</div>';
+      // Reset category pill styles
+      document.querySelectorAll('.cat-pill').forEach((pill) => {
+        const isAll = pill.getAttribute('data-cat') === 'all';
+        pill.className = isAll
+          ? 'cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-hwy-green text-white transition'
+          : 'cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      });
+
+      renderHeroStats();
+      renderStagePills();
+      renderStopsGrid();
+      renderMapRoute();
+      renderSpotlight(0);
+      populateTripCalculatorDropdowns();
+      updateTripEstimate();
+
+      trackAnalyticsEvent('select_route', { route_id: routeKey });
+    }
+
+    function renderHeroStats() {
+      const route = ROUTES_DATA[currentRouteKey];
+      document.getElementById('hero-badge').textContent = route.badge;
+      document.getElementById('hero-endpoints').textContent = route.endpoints;
+      document.getElementById('hero-title').textContent = route.title;
+      document.getElementById('hero-description').textContent = route.description;
+      document.getElementById('hero-shield-code').textContent = route.shieldCode;
+
+      document.getElementById('stat-distance').textContent = formatDistance(route.distanceKm);
+      document.getElementById('stat-drive-time').textContent = route.driveTime;
+      document.getElementById('stat-summit').textContent = route.summit;
+      document.getElementById('stat-stops-count').textContent = `${route.waypoints.length} Stops`;
+      document.getElementById('stat-season-note').textContent = route.seasonNote;
+
+      document.getElementById('directory-heading').textContent = route.directoryHeading;
+      document.getElementById('directory-subheading').textContent = route.directorySubheading;
+    }
+
+    // -----------------------------------------------------------------------
+    // 6. STAGE & CATEGORY FILTERING
+    // -----------------------------------------------------------------------
+    function renderStagePills() {
+      const route = ROUTES_DATA[currentRouteKey];
+      const wrapper = document.getElementById('stage-filter-wrapper');
+      const container = document.getElementById('stage-pills');
+
+      if (!route.stages || route.stages.length <= 1) {
+        wrapper.classList.add('hidden');
         return;
       }
 
-      filtered.forEach((wp, index) => {
-        const card = document.createElement('div');
-        card.className = 'waypoint-card';
-        card.onclick = () => {
-          map.flyTo([wp.lat, wp.lng], 12, { duration: 1.2 });
-          highlightWaypoint(index);
-        };
+      wrapper.classList.remove('hidden');
+      container.innerHTML = route.stages
+        .map((stage) => {
+          const active = stage === currentStage;
+          const classes = active
+            ? 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white transition'
+            : 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+          return `<button type="button" onclick="setStage('${stage.replace(/'/g, "\\'")}')" class="${classes}">${stage}</button>`;
+        })
+        .join('');
+    }
 
-        const distDisplay = isMetric ? wp.dist : `${Math.round(parseInt(wp.dist) * 0.621371)} mi`;
+    function setStage(stageName) {
+      currentStage = stageName;
+      renderStagePills();
+      renderStopsGrid();
+    }
 
-        card.innerHTML = `
-          <h3>${wp.name} <span>${wp.type}</span></h3>
-          <p>${wp.desc}</p>
-          <div class="waypoint-meta">
-            <span>📍 Stop Position: ${distDisplay} from start</span>
-            <span style="color: var(--text-slate-400);">View on map &rarr;</span>
-          </div>
-        `;
-        listEl.appendChild(card);
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach((pill) => {
+        const isTarget = pill.getAttribute('data-cat') === cat;
+        pill.className = isTarget
+          ? 'cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-hwy-green text-white transition'
+          : 'cat-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+      });
+      renderStopsGrid();
+    }
 
-        const marker = L.marker([wp.lat, wp.lng]).addTo(map);
-        marker.bindPopup(`<div style="color: #020617; font-family: 'Plus Jakarta Sans', sans-serif;"><strong>${wp.name}</strong><br><span style="font-size:0.8rem; color:#475569;">${wp.type} &bull; ${distDisplay}</span><p style="font-size:0.8rem; margin-top:4px;">${wp.desc}</p></div>`);
-        markers.push(marker);
+    function handleSearch(query) {
+      currentSearch = query.trim().toLowerCase();
+      renderStopsGrid();
+    }
+
+    function resetFilters() {
+      currentStage = 'All Stages';
+      currentCategory = 'all';
+      currentSearch = '';
+      const input = document.getElementById('stop-search-input');
+      if (input) input.value = '';
+      setCategory('all');
+      renderStagePills();
+      renderStopsGrid();
+    }
+
+    function renderStopsGrid() {
+      const route = ROUTES_DATA[currentRouteKey];
+      const grid = document.getElementById('stops-grid');
+      const emptyState = document.getElementById('empty-stops-state');
+
+      const filtered = route.waypoints
+        .map((wp, idx) => ({ ...wp, originalIndex: idx }))
+        .filter((wp) => {
+          const matchStage = currentStage === 'All Stages' || wp.stage === currentStage;
+          const matchCat = currentCategory === 'all' || wp.category === currentCategory;
+          const matchQuery =
+            !currentSearch ||
+            wp.name.toLowerCase().includes(currentSearch) ||
+            wp.region.toLowerCase().includes(currentSearch) ||
+            wp.highlight.toLowerCase().includes(currentSearch) ||
+            wp.details.toLowerCase().includes(currentSearch);
+          return matchStage && matchCat && matchQuery;
+        });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.innerHTML = filtered
+        .map((wp) => {
+          return `
+            <article class="bg-white rounded-2xl border border-slate-200 hover:border-hwy-green shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden group">
+              <div>
+                <!-- Card Top Bar: Milepost & Category -->
+                <div class="bg-slate-50 px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-hwy-green text-white font-mono font-extrabold text-xs flex items-center justify-center">
+                      ${wp.num}
+                    </span>
+                    <span class="font-mono text-xs font-bold text-slate-700">
+                      ${formatDistance(wp.kmFromStart)}
+                    </span>
+                  </div>
+                  <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-50 text-hwy-green border border-emerald-200">
+                    ${wp.category}
+                  </span>
+                </div>
+
+                <!-- Card Body -->
+                <div class="p-5 space-y-2.5">
+                  <div class="text-xs font-semibold text-slate-400 flex items-center justify-between">
+                    <span>${wp.region}</span>
+                    <span class="font-mono text-slate-500">Elev: ${formatElevation(wp.elevationM)}</span>
+                  </div>
+                  <h3 class="text-lg font-extrabold text-slate-900 group-hover:text-hwy-green transition leading-snug">
+                    ${wp.name}
+                  </h3>
+                  <p class="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-3 py-2">
+                    ${wp.highlight}
+                  </p>
+                  <p class="text-sm text-slate-600 leading-relaxed">
+                    ${wp.details}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Card Footer Tip + Focus Map Button -->
+              <div class="px-5 pb-5 pt-2 space-y-3">
+                <div class="text-xs text-slate-500 bg-slate-50 rounded-xl p-3 border border-slate-100">
+                  <strong class="text-slate-700">Driver Tip:</strong> ${wp.tip}
+                </div>
+                <button
+                  type="button"
+                  onclick="focusWaypointOnMap(${wp.originalIndex})"
+                  class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-hwy-green text-white text-xs font-bold transition flex items-center justify-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>View on Interactive Map</span>
+                </button>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    // -----------------------------------------------------------------------
+    // 7. LEAFLET INTERACTIVE MAP INITIALIZATION & RENDERING
+    // -----------------------------------------------------------------------
+    function initLeafletMap() {
+      if (leafletMap) return;
+
+      leafletMap = L.map('route-map', {
+        scrollWheelZoom: false
+      }).setView([49.35, -116.5], 6);
+
+      // Free OpenStreetMap standard tiles (Zero API Keys)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(leafletMap);
+
+      markerLayerGroup = L.layerGroup().addTo(leafletMap);
+      renderMapRoute();
+    }
+
+    function renderMapRoute() {
+      if (!leafletMap) return;
+      const route = ROUTES_DATA[currentRouteKey];
+
+      markerLayerGroup.clearLayers();
+      markerRefs = [];
+
+      if (routePolyline) {
+        leafletMap.removeLayer(routePolyline);
+      }
+
+      const latLngs = route.waypoints.map((wp) => [wp.lat, wp.lng]);
+
+      // Draw crisp highway green route line
+      routePolyline = L.polyline(latLngs, {
+        color: '#006A4E',
+        weight: 5,
+        opacity: 0.88,
+        lineJoin: 'round'
+      }).addTo(leafletMap);
+
+      // Add numbered markers
+      route.waypoints.forEach((wp, idx) => {
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="hwy-pin ${idx === selectedWaypointIndex ? 'active-pin' : ''}" id="pin-${idx}">${wp.num}</div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        });
+
+        const marker = L.marker([wp.lat, wp.lng], { icon })
+          .bindTooltip(`<strong>#${wp.num} ${wp.name}</strong><br/>${formatDistance(wp.kmFromStart)}`, {
+            direction: 'top',
+            offset: [0, -12]
+          })
+          .on('click', () => {
+            selectedWaypointIndex = idx;
+            updatePinHighlights();
+            renderSpotlight(idx);
+            trackAnalyticsEvent('view_waypoint', { route_id: currentRouteKey, waypoint: wp.name });
+          });
+
+        marker.addTo(markerLayerGroup);
+        markerRefs.push(marker);
+      });
+
+      resetMapBounds();
+    }
+
+    function updatePinHighlights() {
+      document.querySelectorAll('.hwy-pin').forEach((el, idx) => {
+        if (idx === selectedWaypointIndex) {
+          el.classList.add('active-pin');
+        } else {
+          el.classList.remove('active-pin');
+        }
       });
     }
 
-    function filterWaypoints() {
-      renderWaypoints();
+    function resetMapBounds() {
+      if (!leafletMap || !routePolyline) return;
+      leafletMap.fitBounds(routePolyline.getBounds(), { padding: [36, 36] });
     }
 
-    function setCategoryFilter(category, btnElement) {
-      activeCategory = category;
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      btnElement.classList.add('active');
-      renderWaypoints();
+    function focusWaypointOnMap(index) {
+      const route = ROUTES_DATA[currentRouteKey];
+      const wp = route.waypoints[index];
+      if (!wp || !leafletMap) return;
+
+      selectedWaypointIndex = index;
+      updatePinHighlights();
+      renderSpotlight(index);
+
+      document.getElementById('interactive-map-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      leafletMap.setView([wp.lat, wp.lng], 10, { animate: true });
+
+      trackAnalyticsEvent('view_waypoint', { route_id: currentRouteKey, waypoint: wp.name });
     }
 
-    function highlightWaypoint(index) {
-      document.querySelectorAll('.waypoint-card').forEach((c, i) => {
-        c.classList.toggle('active', i === index);
-      });
-      if (markers[index]) {
-        markers[index].openPopup();
-      }
+    function renderSpotlight(index) {
+      const route = ROUTES_DATA[currentRouteKey];
+      const wp = route.waypoints[index] || route.waypoints[0];
+      const container = document.getElementById('map-spotlight-content');
+
+      const totalCount = route.waypoints.length;
+      const prevIdx = (index - 1 + totalCount) % totalCount;
+      const nextIdx = (index + 1) % totalCount;
+
+      container.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <span class="inline-flex items-center gap-1.5 bg-hwy-green text-white text-xs font-extrabold px-3 py-1 rounded-lg">
+            Waypoint #${wp.num} of ${totalCount}
+          </span>
+          <span class="font-mono text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+            ${formatDistance(wp.kmFromStart)}
+          </span>
+        </div>
+
+        <div>
+          <p class="text-xs font-semibold text-slate-400">${wp.region} • Elevation ${formatElevation(wp.elevationM)}</p>
+          <h3 class="text-xl font-extrabold text-slate-900 mt-0.5">${wp.name}</h3>
+        </div>
+
+        <p class="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">
+          ${wp.highlight}
+        </p>
+
+        <p class="text-sm text-slate-600 leading-relaxed">
+          ${wp.details}
+        </p>
+
+        <div class="bg-white rounded-xl p-3 border border-slate-200 text-xs text-slate-600">
+          <strong class="text-slate-900">Traveler Note:</strong> ${wp.tip}
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="focusWaypointOnMap(${prevIdx})" class="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 transition">
+            ← Prev Stop
+          </button>
+          <button type="button" onclick="focusWaypointOnMap(${nextIdx})" class="flex-1 py-2 px-3 rounded-xl bg-hwy-green hover:bg-hwy-greenDark text-xs font-bold text-white transition">
+            Next Stop →
+          </button>
+        </div>
+      `;
     }
 
-    function toggleUnitSystem() {
-      isMetric = !isMetric;
-      document.getElementById('unitDisplay').textContent = isMetric ? 'Kilometers (KM)' : 'Miles (Mi)';
-      document.getElementById('unitLabelShort').textContent = isMetric ? 'km' : 'mi';
-      document.getElementById('unitEconomyLabel').textContent = isMetric ? 'L / 100km' : 'MPG (US)';
-      
-      const ecoInput = document.getElementById('estEconomy');
-      if (!isMetric && ecoInput.value === '9.5') {
-        ecoInput.value = '25';
-      } else if (isMetric && ecoInput.value === '25') {
-        ecoInput.value = '9.5';
-      }
+    // -----------------------------------------------------------------------
+    // 8. TRIP DISTANCE & FUEL / EV STOP ESTIMATOR
+    // -----------------------------------------------------------------------
+    function populateTripCalculatorDropdowns() {
+      const route = ROUTES_DATA[currentRouteKey];
+      const originSel = document.getElementById('calc-origin');
+      const destSel = document.getElementById('calc-dest');
 
-      loadRoute(currentRouteKey);
-      calculateTrip();
+      const optionsHtml = route.waypoints
+        .map(
+          (wp, idx) =>
+            `<option value="${idx}">#${wp.num} ${wp.name} (${formatDistance(wp.kmFromStart)})</option>`
+        )
+        .join('');
+
+      originSel.innerHTML = optionsHtml;
+      destSel.innerHTML = optionsHtml;
+
+      originSel.selectedIndex = 0;
+      destSel.selectedIndex = route.waypoints.length - 1;
     }
 
-    function calculateTrip() {
-      const distVal = parseFloat(document.getElementById('estDistance').value) || 0;
-      const ecoVal = parseFloat(document.getElementById('estEconomy').value) || 1;
+    function updateTripEstimate() {
+      const route = ROUTES_DATA[currentRouteKey];
+      const originIdx = parseInt(document.getElementById('calc-origin').value, 10) || 0;
+      const destIdx = parseInt(document.getElementById('calc-dest').value, 10) || 0;
+      const vehicleType = document.getElementById('calc-vehicle').value;
+      const avgSpeedKmh = parseFloat(document.getElementById('calc-pace').value) || 82;
 
-      if (isMetric) {
-        const fuelLiters = (distVal * ecoVal) / 100;
-        document.getElementById('resFuel').textContent = `${fuelLiters.toFixed(2)} Liters`;
+      const startWp = route.waypoints[originIdx];
+      const endWp = route.waypoints[destIdx];
+      const distKm = Math.abs(endWp.kmFromStart - startWp.kmFromStart);
+
+      const totalHours = distKm / avgSpeedKmh;
+      const hrs = Math.floor(totalHours);
+      const mins = Math.round((totalHours - hrs) * 60);
+
+      // Safe real-world mountain range thresholds (80% buffer)
+      const rangeMapKm = {
+        gas_sedan: 500,
+        suv_truck: 380,
+        ev_standard: 290,
+        ev_long: 380
+      };
+      const safeRange = rangeMapKm[vehicleType] || 450;
+      const recommendedStops = distKm <= 40 ? 0 : Math.floor(distKm / safeRange);
+
+      document.getElementById('est-distance').textContent = formatDistance(distKm);
+      document.getElementById('est-time').textContent = `${hrs}h ${mins}m`;
+      document.getElementById('est-stops').textContent =
+        recommendedStops === 0 ? 'Direct' : `${recommendedStops} Stop${recommendedStops > 1 ? 's' : ''}`;
+
+      const adviceEl = document.getElementById('est-advice');
+      if (distKm === 0) {
+        adviceEl.textContent = 'Origin and destination are the same waypoint. Pick two different stops along the route.';
+      } else if (vehicleType.startsWith('ev')) {
+        adviceEl.innerHTML = `<strong>EV Route Note:</strong> Between <em>${startWp.name}</em> and <em>${endWp.name}</em> (${formatDistance(distKm)}), plan for <strong>${recommendedStops} DC fast-charge stop${recommendedStops === 1 ? '' : 's'}</strong>. Mountain climbs and cold temperatures can reduce EV range by 15–25%.`;
       } else {
-        const fuelGallons = ecoVal > 0 ? (distVal / ecoVal) : 0;
-        document.getElementById('resFuel').textContent = `${fuelGallons.toFixed(2)} US Gallons`;
+        adviceEl.innerHTML = `<strong>Fuel &amp; Pass Note:</strong> Covering ${formatDistance(distKm)} from <em>${startWp.name}</em> to <em>${endWp.name}</em> takes roughly <strong>${hrs}h ${mins}m</strong>. Top off fuel in major towns before long mountain or rural stretches.`;
       }
-
-      const avgSpeed = isMetric ? 90 : 56;
-      const totalHours = distVal / avgSpeed;
-      const hours = Math.floor(totalHours);
-      const minutes = Math.round((totalHours - hours) * 60);
-      document.getElementById('resTime').textContent = `${hours}h ${minutes}m`;
     }
 
-    function openAdModal() {
-      document.getElementById('adModal').classList.add('open');
-    }
-
-    function closeAdModal() {
-      document.getElementById('adModal').classList.remove('open');
-    }
-
-    function sendAdEmail() {
-      const route = document.getElementById('adRoute').value;
-      const business = document.getElementById('adBusiness').value || '(Not specified)';
-      const placement = document.getElementById('adPlacement').value;
-      const notes = document.getElementById('adNotes').value || '(None)';
-
-      const subject = encodeURIComponent(`Hwy3.com Advertising Inquiry: ${business}`);
-      const body = encodeURIComponent(
-        `Hello Hwy3.com Advertising Team,\n\n` +
-        `I am interested in advertising or sponsorship on Hwy3.com.\n\n` +
-        `Target Route / Region: ${route}\n` +
-        `Business Name: ${business}\n` +
-        `Placement Interest: ${placement}\n` +
-        `Additional Notes / Website:\n${notes}\n\n` +
-        `Please contact me back at this email address.`
-      );
-
-      window.location.href = `mailto:ALL4AIM@HOTMAIL.com?subject=${subject}&body=${body}`;
-      closeAdModal();
-    }
-
-    function copyAdEmail() {
-      navigator.clipboard.writeText('ALL4AIM@HOTMAIL.com').then(() => {
-        alert('Email address ALL4AIM@HOTMAIL.com copied to clipboard!');
-      });
-    }
-
-    window.onclick = function(event) {
-      const modal = document.getElementById('adModal');
-      if (event.target === modal) {
-        closeAdModal();
-      }
-    };
+    // -----------------------------------------------------------------------
+    // 9. INITIALIZE ON WINDOW LOAD
+    // -----------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('footer-year').textContent = new Date().getFullYear();
+      initLeafletMap();
+      selectRoute('crowsnest');
+    });
   </script>
 </body>
 </html>
