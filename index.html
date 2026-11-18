@@ -9,8 +9,6 @@
   <!-- =====================================================================
        GOOGLE ANALYTICS 4 (GA4) TRACKING SNIPPET
        Replace 'G-XXXXXXXXXX' below with your actual GA4 Measurement ID.
-       You can also test or preview your Measurement ID inside the site's
-       "Analytics Setup" modal in the footer.
   ====================================================================== -->
   <script>
     window.HWY3_DEFAULT_GA_ID = 'G-XXXXXXXXXX';
@@ -19,8 +17,7 @@
 
     (function initGoogleAnalytics() {
       try {
-        const savedId = localStorage.getItem('hwy3_ga4_id');
-        const activeId = (savedId && /^G-[A-Z0-9]+$/i.test(savedId)) ? savedId : window.HWY3_DEFAULT_GA_ID;
+        const activeId = window.HWY3_DEFAULT_GA_ID;
         window.HWY3_ACTIVE_GA_ID = activeId;
 
         if (activeId && activeId !== 'G-XXXXXXXXXX') {
@@ -32,7 +29,7 @@
           gtag('js', new Date());
           gtag('config', activeId, { anonymize_ip: true });
         } else {
-          // Initialize local dataLayer queue so custom events still log cleanly in preview mode
+          // Initialize local dataLayer queue so custom events still log cleanly
           gtag('js', new Date());
         }
       } catch (e) {
@@ -540,12 +537,12 @@
 
   </main>
 
-  <!-- FOOTER WITH DISCLAIMER & GOOGLE ANALYTICS 4 STATUS INDICATOR -->
+  <!-- FOOTER WITH DISCLAIMER -->
   <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 mt-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
         <!-- Brand & Free Mission -->
-        <div class="md:col-span-6 space-y-3">
+        <div class="md:col-span-8 space-y-3">
           <div class="flex items-center gap-3">
             <div class="w-9 h-10 bg-hwy-green rounded-lg border-2 border-white flex flex-col items-center justify-center text-white font-black">
               <span class="text-[7px] uppercase leading-none">HWY</span>
@@ -556,13 +553,13 @@
               100% Free Resource
             </span>
           </div>
-          <p class="text-sm text-slate-400 leading-relaxed">
+          <p class="text-sm text-slate-400 leading-relaxed max-w-2xl">
             An open, zero-paywall informational directory dedicated to physical Highway 3 routes across Canada and the United States—anchored by British Columbia &amp; Alberta's iconic Crowsnest Highway.
           </p>
         </div>
 
         <!-- Route Quick Links -->
-        <div class="md:col-span-3 space-y-2">
+        <div class="md:col-span-4 space-y-2">
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-white">Highway 3 Corridors</h4>
           <ul class="space-y-1.5 text-xs text-slate-400">
             <li><button type="button" onclick="selectRoute('crowsnest'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">BC &amp; Alberta Hwy 3 (Crowsnest)</button></li>
@@ -571,23 +568,6 @@
             <li><button type="button" onclick="selectRoute('ca3'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">California State Route 3</button></li>
             <li><button type="button" onclick="selectRoute('tx3'); window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-white transition">Texas State Highway 3</button></li>
           </ul>
-        </div>
-
-        <!-- Google Analytics 4 Tracker Status Card -->
-        <div class="md:col-span-3 space-y-2">
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-white">Site Analytics &amp; Counter</h4>
-          <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-300">Google Analytics 4</span>
-              <span id="ga-status-badge" class="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Placeholder ID
-              </span>
-            </div>
-            <p class="text-[11px] text-slate-400 font-mono truncate" id="ga-id-display">ID: G-XXXXXXXXXX</p>
-            <button type="button" onclick="openGaModal()" class="w-full text-center text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white py-1.5 px-3 rounded-lg transition">
-              Verify / Configure GA4 ID
-            </button>
-          </div>
         </div>
       </div>
 
@@ -600,56 +580,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- GOOGLE ANALYTICS 4 CONFIGURATION & VERIFICATION MODAL -->
-  <div id="ga-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="ga-modal-title">
-    <div class="bg-white text-slate-900 rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
-      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-          <h3 id="ga-modal-title" class="font-extrabold text-base">Google Analytics 4 (gtag.js) Setup</h3>
-        </div>
-        <button type="button" onclick="closeGaModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-4 text-sm">
-        <p class="text-slate-600 leading-relaxed">
-          Your <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-xs text-slate-800">gtag.js</code> snippet is pre-installed in the <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-xs text-slate-800">&lt;head&gt;</code> of this file. Paste your <strong>GA4 Measurement ID</strong> (e.g., <code class="font-mono text-xs">G-ABC123XYZ9</code>) below to test it live in this browser, or replace <code class="font-mono text-xs">'G-XXXXXXXXXX'</code> directly in the HTML source before uploading to your host.
-        </p>
-
-        <div>
-          <label for="ga-input-field" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">GA4 Measurement ID</label>
-          <input
-            id="ga-input-field"
-            type="text"
-            placeholder="G-XXXXXXXXXX"
-            class="w-full font-mono text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-hwy-green"
-          />
-          <p id="ga-feedback-msg" class="text-xs mt-1.5 text-slate-500"></p>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 space-y-1">
-          <div class="font-bold text-slate-800">Tracked Events Built In:</div>
-          <ul class="list-disc list-inside space-y-0.5">
-            <li><code class="font-mono">page_view</code> on initial load</li>
-            <li><code class="font-mono">select_route</code> when visitors switch Highway 3 tabs</li>
-            <li><code class="font-mono">view_waypoint</code> when clicking map markers or stops</li>
-          </ul>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-end gap-2 pt-2">
-          <button type="button" onclick="resetGaId()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-            Reset to Placeholder
-          </button>
-          <button type="button" onclick="saveGaId()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-hwy-green hover:bg-hwy-greenDark text-white shadow-sm transition">
-            Save &amp; Activate Tracker
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- =====================================================================
        APPLICATION DATA & INTERACTIVE LOGIC
@@ -1764,86 +1694,10 @@
     }
 
     // -----------------------------------------------------------------------
-    // 9. GOOGLE ANALYTICS 4 MODAL CONTROLS
-    // -----------------------------------------------------------------------
-    function refreshGaStatusUI() {
-      const badge = document.getElementById('ga-status-badge');
-      const display = document.getElementById('ga-id-display');
-      const activeId = window.HWY3_ACTIVE_GA_ID || 'G-XXXXXXXXXX';
-
-      display.textContent = `ID: ${activeId}`;
-      if (activeId !== 'G-XXXXXXXXXX') {
-        badge.textContent = 'Active';
-        badge.className =
-          'inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-      } else {
-        badge.textContent = 'Placeholder ID';
-        badge.className =
-          'inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';
-      }
-    }
-
-    function openGaModal() {
-      const modal = document.getElementById('ga-modal');
-      const input = document.getElementById('ga-input-field');
-      const feedback = document.getElementById('ga-feedback-msg');
-
-      input.value = window.HWY3_ACTIVE_GA_ID !== 'G-XXXXXXXXXX' ? window.HWY3_ACTIVE_GA_ID : '';
-      feedback.textContent = '';
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeGaModal() {
-      const modal = document.getElementById('ga-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    function saveGaId() {
-      const input = document.getElementById('ga-input-field');
-      const feedback = document.getElementById('ga-feedback-msg');
-      const val = input.value.trim().toUpperCase();
-
-      if (!/^G-[A-Z0-9]{6,15}$/.test(val)) {
-        feedback.textContent = 'Please enter a valid GA4 Measurement ID starting with "G-" (e.g., G-ABC123XYZ9).';
-        feedback.className = 'text-xs mt-1.5 text-red-600 font-semibold';
-        return;
-      }
-
-      try {
-        localStorage.setItem('hwy3_ga4_id', val);
-      } catch (e) {}
-
-      window.HWY3_ACTIVE_GA_ID = val;
-      const gaScript = document.createElement('script');
-      gaScript.async = true;
-      gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(val);
-      document.head.appendChild(gaScript);
-      gtag('config', val, { anonymize_ip: true });
-
-      refreshGaStatusUI();
-      feedback.textContent = `GA4 Measurement ID ${val} is now active in this browser! Remember to also update HWY3_DEFAULT_GA_ID in the HTML file for all visitors.`;
-      feedback.className = 'text-xs mt-1.5 text-hwy-green font-semibold';
-    }
-
-    function resetGaId() {
-      try {
-        localStorage.removeItem('hwy3_ga4_id');
-      } catch (e) {}
-      window.HWY3_ACTIVE_GA_ID = 'G-XXXXXXXXXX';
-      document.getElementById('ga-input-field').value = '';
-      document.getElementById('ga-feedback-msg').textContent = 'Reset to placeholder ID (G-XXXXXXXXXX).';
-      document.getElementById('ga-feedback-msg').className = 'text-xs mt-1.5 text-slate-500';
-      refreshGaStatusUI();
-    }
-
-    // -----------------------------------------------------------------------
-    // 10. INITIALIZE ON WINDOW LOAD
+    // 9. INITIALIZE ON WINDOW LOAD
     // -----------------------------------------------------------------------
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('footer-year').textContent = new Date().getFullYear();
-      refreshGaStatusUI();
       initLeafletMap();
       selectRoute('crowsnest');
     });
